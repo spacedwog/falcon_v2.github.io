@@ -3,7 +3,7 @@ import { View, Button } from 'react-native';
 
 export default function ControlScreen() {
   const sendCommand = (command) => {
-    fetch(`http://192.168.0.100/led/${command}`);
+    fetch(`http://192.168.15.8/led/${command}`);
   };
 
   return (

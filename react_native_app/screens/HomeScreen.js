@@ -5,7 +5,7 @@ export default function HomeScreen() {
   const [status, setStatus] = useState("Carregando...");
 
   useEffect(() => {
-    fetch("http://192.168.0.100/")
+    fetch("http://192.168.15.8/")
       .then((res) => res.text())
       .then((data) => setStatus(data))
       .catch(() => setStatus("Erro de conexão"));
