@@ -11,9 +11,8 @@ if 'auth' not in st.session_state:
 if not st.session_state.auth:
     st.subheader("Login com GitHub")
     username = st.text_input("Usuário GitHub")
-    token = st.text_input("Token Pessoal GitHub", type="password")
     if st.button("Entrar"):
-        if login_user(username, token):
+        if login_user(username):
             st.session_state.auth = True
         else:
             st.error("Autenticação falhou")
