@@ -1,30 +1,37 @@
-// === VESPA (Slave - ESP32) ===
-#include <Arduino.h>
+#include <WiFi.h>
+#include <WebServer.h>
 
-#define LED_PIN 2  // Pino do LED interno
+const char* ssid = "FAMILIA SANTOS-5G";
+const char* password = "6z2h1j3k9f";
+
+WebServer server(80);
+int ledPin = 2;
+
+void handleRoot() {
+  server.send(200, "text/plain", "FALCON V2 Online");
+}
+
+void handleLedOn() {
+  digitalWrite(ledPin, HIGH);
+  server.send(200, "text/plain", "LED ON");
+}
+
+void handleLedOff() {
+  digitalWrite(ledPin, LOW);
+  server.send(200, "text/plain", "LED OFF");
+}
 
 void setup() {
   Serial.begin(115200);
-  pinMode(LED_PIN, OUTPUT);
-  Serial.println("VESPA pronta para comandos...");
+  pinMode(ledPin, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) delay(500);
+  server.on("/", handleRoot);
+  server.on("/led/on", handleLedOn);
+  server.on("/led/off", handleLedOff);
+  server.begin();
 }
 
 void loop() {
-  if (Serial.available()) {
-    String cmd = Serial.readStringUntil('\n');
-    cmd.trim();
-
-    if (cmd == "LIGAR_LED") {
-      digitalWrite(LED_PIN, HIGH);
-      Serial.println("LED LIGADO");
-    } else if (cmd == "DESLIGAR_LED") {
-      digitalWrite(LED_PIN, LOW);
-      Serial.println("LED DESLIGADO");
-    } else if (cmd == "STATUS") {
-      int estado = digitalRead(LED_PIN);
-      Serial.println(estado == HIGH ? "LED: ON" : "LED: OFF");
-    } else {
-      Serial.println("COMANDO DESCONHECIDO");
-    }
-  }
+  server.handleClient();
 }
