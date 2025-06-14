@@ -11,6 +11,7 @@
     "@react-navigation/native": "^6.0.0",
     "@react-navigation/stack": "^6.0.0",
     "react-native": "latest",
-    "expo": "latest"
+    "expo": "latest",
+    "react-native-dotenv": "^3.3.1"
   }
 }

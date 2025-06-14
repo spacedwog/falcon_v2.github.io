@@ -15,7 +15,7 @@ if not st.session_state.auth:
         if login_user(username):
             st.session_state.auth = True
         else:
-            st.error("Autenticação falhou")
+            st.error("Autenticação falhou: verifique seu usuário e token.")
 else:
     st.success("Autenticado com sucesso!")
     st.write("Painel principal...")
