@@ -3,11 +3,13 @@
         "Aguarda",
         "comando",
         "comandos",
+        "controlador",
         "Controle",
         "correta",
         "DESCONHECIDO",
         "DESLIGADO",
         "DESLIGAR",
+        "Dispositivo",
         "enviar",
         "estado",
         "Exemplo",
@@ -19,6 +21,7 @@
         "pronta",
         "reinicializar",
         "resposta",
+        "Salvar",
         "Substitua",
         "vespa"
     ]
