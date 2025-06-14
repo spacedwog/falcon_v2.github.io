@@ -1,7 +1,10 @@
 /**
  * Compare two records with primitive values as the content.
  */
-export function isRecordEqual(a: Record<string, any>, b: Record<string, any>) {
+export default function isRecordEqual(
+  a: Record<string, any>,
+  b: Record<string, any>
+) {
   if (a === b) {
     return true;
   }
