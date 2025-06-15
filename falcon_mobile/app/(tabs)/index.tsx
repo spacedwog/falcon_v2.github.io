@@ -1,15 +1,18 @@
-import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import HomeScreen from '../screens/HomeScreen';
-import ControlScreen from '../screens/ControlScreen';
+import { View, Text, StyleSheet } from 'react-native';
 
-const Tab = createBottomTabNavigator();
-
-export default function TabNavigator() {
+export default function HomeScreen() {
   return (
-    <Tab.Navigator>
-      <Tab.Screen name="Status" component={HomeScreen} />
-      <Tab.Screen name="Controle" component={ControlScreen} />
-    </Tab.Navigator>
+    <View style={styles.container}>
+      <Text style={styles.title}>Bem-vindo à aba Home!</Text>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1, justifyContent: 'center', alignItems: 'center',
+  },
+  title: {
+    fontSize: 20, fontWeight: 'bold',
+  },
+});
