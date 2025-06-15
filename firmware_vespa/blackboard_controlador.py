@@ -1,14 +1,13 @@
-import RPi.GPIO as GPIO
-import time
+from gpiozero import OutputDevice
+from time import sleep
 
 pino_saida = 2
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(pino_saida, GPIO.OUT)
+gpio = OutputDevice(pino_saida)
 
 print("Enviando sinal para VESPA ligar...")
 
-GPIO.output(pino_saida, GPIO.HIGH)
-time.sleep(0.5)
-GPIO.output(pino_saida, GPIO.LOW)
+gpio.on()
+sleep(0.5)
+gpio.off()
 
 print("Sinal enviado.")
