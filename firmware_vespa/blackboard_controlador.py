@@ -1,4 +1,11 @@
-from gpiozero import OutputDevice
+import sys
+import platform
+
+if platform.system() == "Windows":
+    from gpiozero_mock import OutputDevice
+else:
+    from gpiozero import OutputDevice
+
 from time import sleep
 
 pino_saida = 2
