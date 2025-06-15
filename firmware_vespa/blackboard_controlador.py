@@ -1,23 +1,14 @@
-# === BLACKBOARD (Controlador) ===
+import RPi.GPIO as GPIO
 import time
-import serial
 
-vespa = serial.Serial('COM3', 115200, timeout=1)
-time.sleep(2)  # Aguarda VESPA reinicializar
+pino_saida = 2
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(pino_saida, GPIO.OUT)
 
+print("Enviando sinal para VESPA ligar...")
 
-def enviar_comando(comando):
-    vespa.write((comando + '\n').encode())
-    resposta = vespa.readline().decode().strip()
-    print(f"[VESPA] {resposta}")
+GPIO.output(pino_saida, GPIO.HIGH)
+time.sleep(0.5)
+GPIO.output(pino_saida, GPIO.LOW)
 
-
-# Exemplo de interação
-if __name__ == "__main__":
-    enviar_comando("LIGAR_LED")
-    time.sleep(1)
-    enviar_comando("STATUS")
-    time.sleep(1)
-    enviar_comando("DESLIGAR_LED")
-    time.sleep(1)
-    enviar_comando("STATUS")
+print("Sinal enviado.")
