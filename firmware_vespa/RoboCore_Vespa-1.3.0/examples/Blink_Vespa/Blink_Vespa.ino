@@ -1,9 +1,10 @@
 /*******************************************************************************
-* RoboCore - Blink (v1.0)
+* RoboCore - Blink Vespa (v1.0)
 * 
 * Blink the LED of the Vespa Board.
-* 
-* Based on the example "Blink" by the Arduino team.
+*
+* Copyright 2024 RoboCore.
+* Written by Francois (11/06/2024).
 * 
 * 
 * This file is part of the Vespa library by RoboCore ("RoboCore-Vespa-lib").
@@ -23,25 +24,25 @@
 *******************************************************************************/
 
 // --------------------------------------------------
+// Libraries
+
+#include <RoboCore_Vespa.h>
+
+// --------------------------------------------------
 // Variables
 
-const int PIN_LED = 15;
-const int PAUSE_TIME = 1000; // [ms]
+VespaLED led;
 
 // --------------------------------------------------
 
 void setup() {
-  // set the pin as an output
-  pinMode(PIN_LED, OUTPUT);
+  led.blink(1000);
 }
 
 // --------------------------------------------------
 
 void loop() {
-  digitalWrite(PIN_LED, HIGH);
-  delay(PAUSE_TIME);
-  digitalWrite(PIN_LED, LOW);
-  delay(PAUSE_TIME);
+  led.update();
 }
 
 // --------------------------------------------------

@@ -1,9 +1,10 @@
 /*******************************************************************************
-* RoboCore - Blink (v1.0)
+* RoboCore - Motors (v1.0)
 * 
-* Blink the LED of the Vespa Board.
+* Demo of how to use the motors with the Vespa.
 * 
-* Based on the example "Blink" by the Arduino team.
+* Copyright 2021 RoboCore.
+* Written by Francois (08/10/21).
 * 
 * 
 * This file is part of the Vespa library by RoboCore ("RoboCore-Vespa-lib").
@@ -23,24 +24,58 @@
 *******************************************************************************/
 
 // --------------------------------------------------
+// Libraries
+
+#include "RoboCore_Vespa.h"
+
+// --------------------------------------------------
 // Variables
 
-const int PIN_LED = 15;
-const int PAUSE_TIME = 1000; // [ms]
+VespaMotors motors;
+const int PAUSE_TIME = 2000;
 
 // --------------------------------------------------
 
-void setup() {
-  // set the pin as an output
-  pinMode(PIN_LED, OUTPUT);
+void setup(){
+  Serial.begin(115200);
 }
 
 // --------------------------------------------------
 
-void loop() {
-  digitalWrite(PIN_LED, HIGH);
+void loop(){
+  Serial.println("Forward");
+  motors.forward(100);
   delay(PAUSE_TIME);
-  digitalWrite(PIN_LED, LOW);
+  motors.stop();
+  
+  Serial.println("Backward");
+  motors.backward(100);
+  delay(PAUSE_TIME);
+  motors.stop();
+  
+  Serial.println("Left 1");
+  motors.setSpeedLeft(100);
+  delay(PAUSE_TIME);
+  motors.stop();
+  Serial.println("Left 2");
+  motors.setSpeedLeft(-100);
+  delay(PAUSE_TIME);
+  motors.stop();
+  
+  Serial.println("Right 1");
+  motors.setSpeedRight(100);
+  delay(PAUSE_TIME);
+  motors.stop();
+  Serial.println("Right 2");
+  motors.setSpeedRight(-100);
+  delay(PAUSE_TIME);
+  motors.stop();
+  
+  Serial.println("Turn");
+  motors.turn(90,30);
+  delay(PAUSE_TIME);
+  motors.stop();
+  
   delay(PAUSE_TIME);
 }
 

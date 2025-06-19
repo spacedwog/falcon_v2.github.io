@@ -1,9 +1,10 @@
 /*******************************************************************************
-* RoboCore - Blink (v1.0)
+* RoboCore - Supply Voltage (v1.0)
 * 
-* Blink the LED of the Vespa Board.
+* Read the voltage of the power supply.
 * 
-* Based on the example "Blink" by the Arduino team.
+* Copyright 2021 RoboCore.
+* Written by Francois (07/10/21).
 * 
 * 
 * This file is part of the Vespa library by RoboCore ("RoboCore-Vespa-lib").
@@ -23,25 +24,29 @@
 *******************************************************************************/
 
 // --------------------------------------------------
+// Libraries
+
+#include "RoboCore_Vespa.h"
+
+// --------------------------------------------------
 // Variables
 
-const int PIN_LED = 15;
-const int PAUSE_TIME = 1000; // [ms]
+VespaBattery vbat;
 
 // --------------------------------------------------
 
 void setup() {
-  // set the pin as an output
-  pinMode(PIN_LED, OUTPUT);
+  Serial.begin(115200);
 }
 
 // --------------------------------------------------
 
 void loop() {
-  digitalWrite(PIN_LED, HIGH);
-  delay(PAUSE_TIME);
-  digitalWrite(PIN_LED, LOW);
-  delay(PAUSE_TIME);
+  Serial.print("Battery voltage: ");
+  Serial.print(vbat.readVoltage());
+  Serial.println(" mV");
+
+  delay(1000);
 }
 
 // --------------------------------------------------

@@ -1,9 +1,10 @@
 /*******************************************************************************
-* RoboCore - Blink (v1.0)
+* RoboCore - Sweep (v1.0)
 * 
-* Blink the LED of the Vespa Board.
+* Sweep two servos simultaneously but in opposite directions.
 * 
-* Based on the example "Blink" by the Arduino team.
+* Copyright 2024 RoboCore.
+* Written by Francois (14/03/2024).
 * 
 * 
 * This file is part of the Vespa library by RoboCore ("RoboCore-Vespa-lib").
@@ -23,25 +24,35 @@
 *******************************************************************************/
 
 // --------------------------------------------------
+// Libraries
+
+#include "RoboCore_Vespa.h"
+
+// --------------------------------------------------
 // Variables
 
-const int PIN_LED = 15;
-const int PAUSE_TIME = 1000; // [ms]
+VespaServo servo1;
+VespaServo servo2;
 
 // --------------------------------------------------
 
-void setup() {
-  // set the pin as an output
-  pinMode(PIN_LED, OUTPUT);
+void setup(){
+  // Note: some servos might require different MIN and MAX pulses (in [ms])
+  //       * the default values are the maximum values: {500,2500}
+  servo1.attach(VESPA_SERVO_S1); // servo on pin 26, with default min and max
+  servo2.attach(VESPA_SERVO_S2, 1000, 2000); // servo on pin 25, with min=1000 and max=2000
+  
+  delay(3000);
 }
 
 // --------------------------------------------------
 
-void loop() {
-  digitalWrite(PIN_LED, HIGH);
-  delay(PAUSE_TIME);
-  digitalWrite(PIN_LED, LOW);
-  delay(PAUSE_TIME);
+void loop(){
+  for(uint8_t i=0 ; i <= 180 ; i += 10){
+    servo1.write(i);
+    servo2.write(180-i);
+    delay(500);
+  }
 }
 
 // --------------------------------------------------
