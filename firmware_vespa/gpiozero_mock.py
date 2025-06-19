@@ -3,7 +3,7 @@ class OutputDevice:
         print(f"Simulando GPIO no pino {pin}")
 
     def on(self):
-        print("GPIO ON")
+        print("Forward")
 
     def off(self):
-        print("GPIO OFF")
+        print("Backward")
