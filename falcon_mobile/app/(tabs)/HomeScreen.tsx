@@ -6,31 +6,49 @@ import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import WifiManager from 'react-native-wifi-reborn';
+import { PermissionsAndroid } from 'react-native';
 
 export default function HomeScreen() {
+  
   const enviarParaBlackboard = async () => {
-    const dados = {
-      comando: 'ligar',
-      origem: 'HomeScreen',
-      timestamp: new Date().toISOString(),
-    };
-
+    const ssid = 'Vespa-AP';
+    const senha = 'senha1234'; // ou "" se for uma rede aberta
+  
     try {
-      const resposta = await fetch('http://192.168.15.8/api/comando', {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert('Permissão negada', 'Ative a localização para usar Wi-Fi.');
+          return;
+        }
+      }
+  
+      await WifiManager.connectToProtectedSSID(ssid, senha, true, false);
+  
+      const dados = {
+        comando: 'ligar',
+        origem: 'HomeScreen',
+        timestamp: new Date().toISOString(),
+      };
+  
+      const resposta = await fetch('http://192.168.4.1/api/comando', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(dados),
       });
-
+  
       if (resposta.ok) {
-        Alert.alert('Sucesso', 'Comando enviado para o Blackboard.');
+        Alert.alert('Sucesso', 'Comando enviado para o Blackboard via Wi-Fi AP.');
       } else {
         Alert.alert('Erro', `Falha ao enviar: ${resposta.status}`);
       }
     } catch (erro) {
-      Alert.alert('Erro de rede', (erro as Error).message);
+      Alert.alert('Erro', (erro as Error).message);
     }
   };
 

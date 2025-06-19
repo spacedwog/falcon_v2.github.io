@@ -1,47 +1,31 @@
-/*******************************************************************************
-* RoboCore - Blink (v1.0)
-* 
-* Blink the LED of the Vespa Board.
-* 
-* Based on the example "Blink" by the Arduino team.
-* 
-* 
-* This file is part of the Vespa library by RoboCore ("RoboCore-Vespa-lib").
-* 
-* "RoboCore-Vespa-lib" is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-* 
-* "RoboCore-Vespa-lib" is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-* 
-* You should have received a copy of the GNU Lesser General Public License
-* along with "RoboCore-Vespa-lib". If not, see <https://www.gnu.org/licenses/>
-*******************************************************************************/
+#include <WiFi.h>
+#include <WebServer.h>
 
-// --------------------------------------------------
-// Variables
+const char* ssid = "FAMILIA SANTOS-5G";
+const char* password = "6z2h1j3k9f";
 
-const int PIN_LED = 15;
-const int PAUSE_TIME = 1000; // [ms]
+WebServer server(80);
 
-// --------------------------------------------------
+void handleComando() {
+  if (server.method() == HTTP_POST) {
+    String body = server.arg("plain");
+    Serial2.println(body); // Envia via UART para o UNO
+    server.send(200, "application/json", "{\"status\": \"comando recebido\"}");
+  } else {
+    server.send(405, "text/plain", "Método não permitido");
+  }
+}
 
 void setup() {
-  // set the pin as an output
-  pinMode(PIN_LED, OUTPUT);
-}
+  Serial.begin(115200);
+  Serial2.begin(9600, SERIAL_8N1, 16, 17); // RX = GPIO16, TX = GPIO17
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) delay(500);
 
-// --------------------------------------------------
+  server.on("/api/comando", HTTP_POST, handleComando);
+  server.begin();
+}
 
 void loop() {
-  digitalWrite(PIN_LED, HIGH);
-  delay(PAUSE_TIME);
-  digitalWrite(PIN_LED, LOW);
-  delay(PAUSE_TIME);
+  server.handleClient();
 }
-
-// --------------------------------------------------
