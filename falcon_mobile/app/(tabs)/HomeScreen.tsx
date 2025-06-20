@@ -16,7 +16,7 @@ export default function HomeScreen() {
     };
 
     try {
-      const resposta = await fetch('http://192.168.15.8/api/comando', {
+      const resposta = await fetch('http://192.168.4.1/api/comando', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
