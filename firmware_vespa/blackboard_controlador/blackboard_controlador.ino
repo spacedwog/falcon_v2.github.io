@@ -7,10 +7,9 @@ void loop() {
   if (Serial.available()) {
     String comando = Serial.readStringUntil('\n');
     comando.trim();
-
-    if (comando.indexOf("ligar") >= 0) {
+    if (comando == "ligar") {
       digitalWrite(13, HIGH);
-    } else if (comando.indexOf("desligar") >= 0) {
+    } else if (comando == "desligar") {
       digitalWrite(13, LOW);
     }
 
