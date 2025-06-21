@@ -41,6 +41,10 @@ app.post('/api/comando', (req, res) => {
   });
 });
 
+app.get('/api/comando', (req, res) => {
+  res.status(405).send('Use POST para enviar comandos.');
+});
+
 app.listen(porta, () => {
   console.log(`🚀 Servidor HTTP escutando em http://localhost:${porta}`);
 });

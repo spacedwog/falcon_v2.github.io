@@ -24,13 +24,16 @@ export default function App() {
         body: JSON.stringify(dados),
       });
 
+      Alert.alert(resposta.toString());
+
       if (!resposta.ok) {
         throw new Error(`Erro HTTP: ${resposta.status}`);
       }
 
       const resultado = await resposta.json();
       Alert.alert('Resposta do ESP32', JSON.stringify(resultado, null, 2));
-    } catch (erro) {
+    }
+    catch (erro) {
       Alert.alert('Erro de comunicação', (erro as Error).message);
     }
   };
