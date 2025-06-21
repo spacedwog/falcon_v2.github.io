@@ -3,8 +3,9 @@ import { Alert, Button, StyleSheet, View } from 'react-native';
 
 // Altere o IP conforme o modo de operação do ESP32:
 // - Modo AP: 'http://192.168.4.1'
-// - Modo STA: 'http://192.168.15.8' (conectado à rede Wi-Fi local)
-// - Dispositivo físico real 'http://localhost:3000' (com Wi-Fi)
+// - Modo STA: 'http://192.168.x.x' (conectado à rede Wi-Fi local)
+// - Dispositivo físico real 'http://<IP_LOCAL>:3000' (com Wi-Fi)
+const IP_NODEMCU = 'http://192.168.15.8:3000'; // Dispositivo físico real (com Wi-Fi)
 
 export default function App() {
   const enviarComando = async (comando: 'ligar' | 'desligar') => {
@@ -15,13 +16,15 @@ export default function App() {
     };
 
     try {
-      const resposta = await fetch('http://localhost:3000/api/comando', {
+      const resposta = await fetch('`${IP_NODEMCU}/api/comando`', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(dados),
       });
+
+      Alert.alert(resposta.toString());
 
       if (!resposta.ok) {
         throw new Error(`Erro HTTP: ${resposta.status}`);
