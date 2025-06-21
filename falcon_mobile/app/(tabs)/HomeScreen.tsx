@@ -1,22 +1,21 @@
 import React from 'react';
-import { Alert, Button, Platform, StyleSheet, View } from 'react-native';
-import { Image } from 'expo-image';
+import { Alert, Button, StyleSheet, View } from 'react-native';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+// Altere o IP conforme o modo de operação do ESP32:
+// - Modo AP: 'http://192.168.4.1'
+// - Modo STA: 'http://192.168.x.x' (conectado à rede Wi-Fi local)
+const IP_NODEMCU = 'http://192.168.4.1';
 
-export default function HomeScreen() {
-  const enviarParaBlackboard = async () => {
+export default function App() {
+  const enviarComando = async (comando: 'ligar' | 'desligar') => {
     const dados = {
-      comando: 'ligar',
-      origem: 'HomeScreen',
+      comando,
+      origem: 'ReactNativeApp',
       timestamp: new Date().toISOString(),
     };
 
     try {
-      const resposta = await fetch('http://192.168.4.1/api/comando', {
+      const resposta = await fetch(`${IP_NODEMCU}/api/comando`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -24,85 +23,31 @@ export default function HomeScreen() {
         body: JSON.stringify(dados),
       });
 
-      if (resposta.ok) {
-        Alert.alert('Sucesso', 'Comando enviado para o Blackboard.');
-      } else {
-        Alert.alert('Erro', `Falha ao enviar: ${resposta.status}`);
+      if (!resposta.ok) {
+        throw new Error(`Erro HTTP: ${resposta.status}`);
       }
+
+      const resultado = await resposta.json();
+      Alert.alert('Resposta do ESP32', JSON.stringify(resultado, null, 2));
     } catch (erro) {
-      Alert.alert('Erro de rede', (erro as Error).message);
+      Alert.alert('Erro de comunicação', (erro as Error).message);
     }
   };
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }
-    >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Bem-vindo!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Etapa 1: Experimente</ThemedText>
-        <ThemedText>
-          Edite <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> para ver mudanças.
-          Pressione{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          para abrir as ferramentas do desenvolvedor.
-        </ThemedText>
-      </ThemedView>
-
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Etapa 2: Explore</ThemedText>
-        <ThemedText>
-          Toque na aba "Explore" para saber mais sobre o que está incluído neste app inicial.
-        </ThemedText>
-      </ThemedView>
-
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Etapa 3: Novo começo</ThemedText>
-        <ThemedText>
-          Quando estiver pronto, execute{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> para começar do zero.
-        </ThemedText>
-      </ThemedView>
-
-      {/* Botão para enviar dados */}
-      <View style={{ marginVertical: 20, alignItems: 'center' }}>
-        <Button title="Enviar Comando para o Blackboard" onPress={enviarParaBlackboard} />
-      </View>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <Button title="Ligar LED" onPress={() => enviarComando('ligar')} />
+      <View style={{ height: 16 }} />
+      <Button title="Desligar LED" onPress={() => enviarComando('desligar')} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: '#F0F8FF',
   },
 });
