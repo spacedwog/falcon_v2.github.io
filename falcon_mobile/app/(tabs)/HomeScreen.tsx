@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getServerIP } from '../../utils/getServerIP';
 import { Alert, Button, StyleSheet, View, Text } from 'react-native';
 
-const IP_NODEMCU = getServerIP();
+const IP_NODEMCU = "http://192.168.4.1";
 
 export default function App() {
   const [dadoSerial, setDadoSerial] = useState<string>('---');
