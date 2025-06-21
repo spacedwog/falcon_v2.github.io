@@ -10,7 +10,7 @@ void setup() {
   pinMode(led1, OUTPUT);
   pinMode(led2, OUTPUT);
 
-  Serial.print("Sistema pronto. Use comandos: ligar ou desligar");
+  Serial.println("Sistema pronto. Use comandos: 1 (ligar), 0 (desligar)");
 }
 
 void loop() {
@@ -18,20 +18,20 @@ void loop() {
     String comando = Serial.readStringUntil('\n');
     comando.trim();
 
-    if (comando == "ligar") {
+    if (comando == "1") {
       digitalWrite(led1, HIGH);
       digitalWrite(led2, HIGH);
       Serial.println("LEDs ligados.");
     } 
-    else if (comando == "desligar") {
+    else if (comando == "0") {
       digitalWrite(led1, LOW);
       digitalWrite(led2, LOW);
       Serial.println("LEDs desligados.");
     } 
     else {
-      Serial.println("Comando desconhecido." + comando);
+      Serial.println("Comando desconhecido: " + comando);
     }
   }
 
-  delay(100); // evita sobrecarga de leitura
+  delay(100);
 }
