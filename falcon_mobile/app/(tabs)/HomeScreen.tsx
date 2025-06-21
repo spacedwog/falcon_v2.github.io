@@ -1,23 +1,19 @@
 import React from 'react';
-import { getServerIP } from '../../utils/getServerIP';
-import { Alert, Button, StyleSheet, View } from 'react-native';
+import { getServerIP } from '../../utils/getServerIP'; // helper criado
+import { Alert, Button, StyleSheet, View, Text } from 'react-native'; // ✅ importe correto
 
-// Altere o IP conforme o modo de operação do ESP32:
-// - Modo AP: 'http://192.168.4.1'
-// - Modo STA: 'http://192.168.x.x' (conectado à rede Wi-Fi local)
-// - Dispositivo físico real 'http://<IP_LOCAL>:3000' (com Wi-Fi)
 const IP_NODEMCU = getServerIP();
 
 export default function App() {
   const enviarComando = async (comando: 'ligar' | 'desligar') => {
     const dados = {
       comando,
-      origem: 'falcon_mobile',
+      origem: 'ReactNativeApp',
       timestamp: new Date().toISOString(),
     };
 
     try {
-      const resposta = await fetch('`${IP_NODEMCU}/api/comando`', {
+      const resposta = await fetch(`${IP_NODEMCU}/api/comando`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -25,22 +21,21 @@ export default function App() {
         body: JSON.stringify(dados),
       });
 
-      Alert.alert(resposta.toString());
-
       if (!resposta.ok) {
         throw new Error(`Erro HTTP: ${resposta.status}`);
       }
 
       const resultado = await resposta.json();
       Alert.alert('Resposta do ESP32', JSON.stringify(resultado, null, 2));
-    }
-    catch (erro) {
+    } catch (erro) {
       Alert.alert('Erro de comunicação', (erro as Error).message);
     }
   };
 
   return (
     <View style={styles.container}>
+      <Text style={styles.ipText}>Conectando a: {IP_NODEMCU}</Text>
+      <View style={{ height: 16 }} />
       <Button title="Ligar LED" onPress={() => enviarComando('ligar')} />
       <View style={{ height: 16 }} />
       <Button title="Desligar LED" onPress={() => enviarComando('desligar')} />
@@ -54,5 +49,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
     backgroundColor: '#F0F8FF',
+  },
+  ipText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#333',
   },
 });
