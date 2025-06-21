@@ -18,12 +18,12 @@ void loop() {
     String comando = Serial.readStringUntil('\n');
     comando.trim();
 
-    if (comando == "1") {
+    if (comando == "ligar") {
       digitalWrite(led1, HIGH);
       digitalWrite(led2, HIGH);
       Serial.println("LEDs ligados.");
     } 
-    else if (comando == "0") {
+    else if (comando == "desligar") {
       digitalWrite(led1, LOW);
       digitalWrite(led2, LOW);
       Serial.println("LEDs desligados.");

@@ -29,12 +29,12 @@ serial.on('error', (err) => {
 app.use(bodyParser.json());
 
 app.post('/api/comando', (req, res) => {
-  const { comando } = req.body;
+  const {comando, texto} = req.body;
   if (!['ligar', 'desligar'].includes(comando)) {
     return res.status(400).json({ erro: 'Comando inválido' });
   }
 
-  const sinal = comando === 'ligar' ? '1' : '0';
+  const sinal = texto === 'ligar' ? '1' : '0';
 
   serial.write(sinal, (err) => {
     if (err) {
