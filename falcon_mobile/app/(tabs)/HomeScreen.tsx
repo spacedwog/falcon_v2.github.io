@@ -1,12 +1,14 @@
+// HomeScreen.tsx
 import React, { useEffect, useState } from 'react';
-import { getServerIP } from '../../utils/getServerIP';
 import { Alert, Button, StyleSheet, View, Text } from 'react-native';
 
-const IP_NODEMCU = "http://192.168.4.1";
+// IP da VESPA (ESP32) em modo Access Point ou Station (ajuste conforme necessário)
+const IP_NODEMCU = "http://192.168.4.1"; // ou http://192.168.0.x se estiver na rede do roteador
 
 export default function App() {
   const [dadoSerial, setDadoSerial] = useState<string>('---');
 
+  // Função para enviar comando 'ligar' ou 'desligar' ao ESP32
   const enviarComando = async (comando: 'ligar' | 'desligar') => {
     const dados = {
       comando,
@@ -34,6 +36,7 @@ export default function App() {
     }
   };
 
+  // Função que busca o dado serial do ESP32
   const buscarDadoSerial = async () => {
     try {
       const resposta = await fetch(`${IP_NODEMCU}/api/dados`);
@@ -44,6 +47,7 @@ export default function App() {
     }
   };
 
+  // Efeito que atualiza a cada 2 segundos
   useEffect(() => {
     const intervalo = setInterval(buscarDadoSerial, 2000); // a cada 2 segundos
     return () => clearInterval(intervalo);
@@ -53,6 +57,7 @@ export default function App() {
     <View style={styles.container}>
       <Text style={styles.ipText}>Conectando a: {IP_NODEMCU}</Text>
       <Text style={styles.serialText}>Dado da COM3: {dadoSerial}</Text>
+
       <View style={{ height: 16 }} />
       <Button title="Ligar LED" onPress={() => enviarComando('ligar')} />
       <View style={{ height: 16 }} />
