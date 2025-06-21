@@ -8,7 +8,6 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "android": "expo start --android",
-    "serial-bridge": "node serial-bridge.js",
     "reset-project": "node ./scripts/reset-project.js"
   },
   "dependencies": {
