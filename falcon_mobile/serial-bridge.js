@@ -1,12 +1,12 @@
 const express = require('express');
-const SerialPort = require('serialport');
+const { SerialPort } = require('serialport');
 const bodyParser = require('body-parser');
 
 const app = express();
 const porta = 3000;
 
-// Altere a porta conforme necessário
-const serial = new SerialPort('COM3', {
+const serial = new SerialPort({
+  path: 'COM3',
   baudRate: 115200,
 });
 
@@ -22,7 +22,7 @@ app.use(bodyParser.json());
 
 app.post('/api/comando', (req, res) => {
   const { comando } = req.body;
-  if (!comando || (comando !== 'ligar' && comando !== 'desligar')) {
+  if (!['ligar', 'desligar'].includes(comando)) {
     return res.status(400).json({ erro: 'Comando inválido' });
   }
 
