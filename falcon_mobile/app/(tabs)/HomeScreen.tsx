@@ -23,8 +23,6 @@ export default function App() {
         body: JSON.stringify(dados),
       });
 
-      Alert.alert(resposta.toString());
-
       if (!resposta.ok) {
         throw new Error(`Erro HTTP: ${resposta.status}`);
       }
