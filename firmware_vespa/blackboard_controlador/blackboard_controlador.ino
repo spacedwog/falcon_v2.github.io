@@ -5,7 +5,7 @@ const int led1 = 4;  // D2 no NodeMCU
 const int led2 = 5;  // D1 no NodeMCU
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   pinMode(led1, OUTPUT);
   pinMode(led2, OUTPUT);
