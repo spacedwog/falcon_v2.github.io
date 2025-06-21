@@ -20,6 +20,10 @@ serial.on('error', (err) => {
 
 app.use(bodyParser.json());
 
+app.get('/', (req, res) => {
+  res.send('Servidor serial ativo. Use POST /api/comando');
+});
+
 app.post('/api/comando', (req, res) => {
   const { comando } = req.body;
   if (!['ligar', 'desligar'].includes(comando)) {

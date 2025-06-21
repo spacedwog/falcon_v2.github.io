@@ -4,6 +4,7 @@ import { Alert, Button, StyleSheet, View } from 'react-native';
 // Altere o IP conforme o modo de operação do ESP32:
 // - Modo AP: 'http://192.168.4.1'
 // - Modo STA: 'http://192.168.x.x' (conectado à rede Wi-Fi local)
+// - Dispositivo físico real 'http://<IP_LOCAL>:3000' (com Wi-Fi)
 const IP_NODEMCU = 'http://<IP_LOCAL>:3000'; // Dispositivo físico real (com Wi-Fi)
 
 export default function App() {
