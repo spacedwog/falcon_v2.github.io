@@ -5,6 +5,8 @@ const bodyParser = require('body-parser');
 const app = express();
 const porta = 3000;
 
+let ultimoDadoSerial = ''; // Armazena o último dado recebido
+
 const serial = new SerialPort({
   path: 'COM3',
   baudRate: 115200,
@@ -14,15 +16,17 @@ serial.on('open', () => {
   console.log('✅ Conectado à COM3');
 });
 
+serial.on('data', (data) => {
+  const texto = data.toString().trim();
+  console.log('📥 Dado recebido:', texto);
+  ultimoDadoSerial = texto;
+});
+
 serial.on('error', (err) => {
   console.error('❌ Erro serial:', err.message);
 });
 
 app.use(bodyParser.json());
-
-app.get('/', (req, res) => {
-  res.send('Servidor serial ativo. Use POST /api/comando');
-});
 
 app.post('/api/comando', (req, res) => {
   const { comando } = req.body;
@@ -41,10 +45,11 @@ app.post('/api/comando', (req, res) => {
   });
 });
 
-app.get('/api/comando', (req, res) => {
-  res.status(405).send('Use POST para enviar comandos.');
+// ✅ Novo endpoint para o app React Native buscar os dados da serial
+app.get('/api/dados', (req, res) => {
+  res.json({ dado: ultimoDadoSerial });
 });
 
 app.listen(porta, () => {
-  console.log(`🚀 Servidor HTTP escutando em http://localhost:${porta}`);
+  console.log(`🚀 Servidor HTTP rodando em http://localhost:${porta}`);
 });

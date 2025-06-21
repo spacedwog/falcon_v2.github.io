@@ -1,10 +1,12 @@
-import React from 'react';
-import { getServerIP } from '../../utils/getServerIP'; // helper criado
-import { Alert, Button, StyleSheet, View, Text } from 'react-native'; // ✅ importe correto
+import React, { useEffect, useState } from 'react';
+import { getServerIP } from '../../utils/getServerIP';
+import { Alert, Button, StyleSheet, View, Text } from 'react-native';
 
 const IP_NODEMCU = getServerIP();
 
 export default function App() {
+  const [dadoSerial, setDadoSerial] = useState<string>('---');
+
   const enviarComando = async (comando: 'ligar' | 'desligar') => {
     const dados = {
       comando,
@@ -32,9 +34,25 @@ export default function App() {
     }
   };
 
+  const buscarDadoSerial = async () => {
+    try {
+      const resposta = await fetch(`${IP_NODEMCU}/api/dados`);
+      const json = await resposta.json();
+      setDadoSerial(json.dado || 'Sem dado');
+    } catch (err) {
+      setDadoSerial('Erro');
+    }
+  };
+
+  useEffect(() => {
+    const intervalo = setInterval(buscarDadoSerial, 2000); // a cada 2 segundos
+    return () => clearInterval(intervalo);
+  }, []);
+
   return (
     <View style={styles.container}>
       <Text style={styles.ipText}>Conectando a: {IP_NODEMCU}</Text>
+      <Text style={styles.serialText}>Dado da COM3: {dadoSerial}</Text>
       <View style={{ height: 16 }} />
       <Button title="Ligar LED" onPress={() => enviarComando('ligar')} />
       <View style={{ height: 16 }} />
@@ -51,9 +69,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F8FF',
   },
   ipText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 14,
     textAlign: 'center',
-    color: '#333',
+    marginBottom: 10,
+    color: '#555',
+  },
+  serialText: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: 'bold',
+    color: '#222',
   },
 });
