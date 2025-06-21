@@ -11,7 +11,7 @@ export default function App() {
   const enviarComando = async (comando: 'ligar' | 'desligar') => {
     const dados = {
       comando,
-      origem: 'ReactNativeApp',
+      origem: 'falcon_mobile',
       timestamp: new Date().toISOString(),
     };
 
