@@ -14,13 +14,13 @@ portaSerial.on('open', () => {
 });
 
 app.post('/api/comando', (req, res) => {
-  const { comando, texto } = req.body;
+  const { comando } = req.body;
 
   if (!['ligar', 'desligar'].includes(comando)) {
     return res.status(400).json({ erro: 'Comando inválido' });
   }
 
-  const mensagem = texto === 'ligar' ? '1' : '0';
+  const mensagem = comando === 'ligar' ? '1' : '0';
 
   portaSerial.write(mensagem, (err) => {
     if (err) {
