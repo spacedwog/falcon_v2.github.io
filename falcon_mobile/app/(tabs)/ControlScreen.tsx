@@ -15,7 +15,7 @@ export default function App() {
     };
 
     try {
-      const resposta = await fetch(`${IP_NODEMCU}/api/comando`, {
+      const resposta = await fetch(`${IP_NODEMCU}/vespa/comando`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ export default function App() {
 
   const buscarDadoSerial = async () => {
     try {
-      const resposta = await fetch(`${IP_NODEMCU}/api/dados`);
+      const resposta = await fetch(`${IP_NODEMCU}/vespa/dados_vespa`);
       const json = await resposta.json();
       setDadoSerial(json.dado || 'Sem dado');
     } catch (err) {

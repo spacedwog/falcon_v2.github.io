@@ -23,5 +23,5 @@ export function getServerIP(): string {
 }
 
 export function getVespaId(): string {
-  return getServerIP(); // Se for o mesmo IP
+  return "http://192.168.1.4"; // Se for o mesmo IP
 }
