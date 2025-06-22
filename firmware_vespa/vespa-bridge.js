@@ -16,8 +16,8 @@ serial.on('open', () => {
   console.log('✅ Conectado à COM4');
 });
 
-serial.on('data_vespa', (data_vespa) => {
-  const texto = data_vespa.toString().trim();
+serial.on('data', (data) => {
+  const texto = data.toString().trim();
   console.log('📥 Dado recebido:', texto);
   ultimoDadoSerial = texto;
 });
