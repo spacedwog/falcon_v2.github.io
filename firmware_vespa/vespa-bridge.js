@@ -13,7 +13,7 @@ const serial = new SerialPort({
 });
 
 serial.on('open', () => {
-  console.log('✅ Conectado à COM3');
+  console.log('✅ Conectado à COM4');
 });
 
 serial.on('data', (data) => {
