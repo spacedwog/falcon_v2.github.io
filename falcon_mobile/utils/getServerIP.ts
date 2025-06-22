@@ -1,21 +1,27 @@
 import { Platform } from 'react-native';
+// import * as Device from 'expo-device'; // opcional se usar Expo
 
-export function getServerIP(): string {
-  // Emulador Android (AVD)
-  if (Platform.OS === 'android' && !isRunningOnPhysicalDevice()) {
-    return 'http://10.0.2.2:3000';
-  }
+const LOCALHOST = 'http://localhost';
+const AVD_IP = 'http://10.0.2.2';
+const LOCAL_IP = 'http://192.168.15.8'; // Substitua pelo seu IP
+const PORT = 3000;
 
-  // Emulador iOS (funciona com localhost)
-  if (Platform.OS === 'ios' && !isRunningOnPhysicalDevice()) {
-    return 'http://localhost:3000';
-  }
-
-  // Dispositivo físico — use IP local da máquina manualmente aqui:
-  return 'http://192.168.15.8:3000'; // 🔁 Substitua pelo IP do seu PC
+function isRunningOnPhysicalDevice(): boolean {
+  return true; // ou: return Device.isDevice;
 }
 
-// Essa função é "fake", pois não dá para detectar nativamente sem biblioteca
-function isRunningOnPhysicalDevice(): boolean {
-  return true; // ajuste para false se estiver em emulador
+export function getServerIP(): string {
+  if (Platform.OS === 'android' && !isRunningOnPhysicalDevice()) {
+    return `${AVD_IP}:${PORT}`;
+  }
+
+  if (Platform.OS === 'ios' && !isRunningOnPhysicalDevice()) {
+    return `${LOCALHOST}:${PORT}`;
+  }
+
+  return `${LOCAL_IP}:${PORT}`;
+}
+
+export function getVespaId(): string {
+  return "http://192.168.1.4"; // Se for o mesmo IP
 }
