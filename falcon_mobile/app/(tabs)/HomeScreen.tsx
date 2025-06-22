@@ -10,7 +10,7 @@ export default function App() {
   const enviarComando = async (comando: 'ligar' | 'desligar') => {
     const dados = {
       comando,
-      origem: 'ReactNativeApp',
+      origem: 'Falcon Mobile',
       timestamp: new Date().toISOString(),
     };
 
@@ -28,7 +28,7 @@ export default function App() {
       }
 
       const resultado = await resposta.json();
-      Alert.alert('Resposta do ESP32', JSON.stringify(resultado, null, 2));
+      Alert.alert('Resposta do Blackboard(UNO)', JSON.stringify(resultado, null, 2));
     } catch (erro) {
       Alert.alert('Erro de comunicação', (erro as Error).message);
     }
