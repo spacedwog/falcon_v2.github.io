@@ -3,21 +3,9 @@
 
 #include <ESP8266WiFi.h>
 
-// Nome e senha da rede Wi-Fi criada pelo ESP8266
-const char* ap_ssid = "Falcon_WiFi";
-const char* ap_password = "falconwifi";
+extern const char* ap_ssid;
+extern const char* ap_password;
 
-// Função para iniciar o Access Point
-void iniciarAccessPoint() {
-  Serial.begin(115200);
-  delay(1000);
-
-  Serial.println("Iniciando o Access Point...");
-  WiFi.softAP(ap_ssid, ap_password);
-
-  IPAddress IP = WiFi.softAPIP();
-  Serial.print("Access Point IP address: ");
-  Serial.println(IP);
-}
+void iniciarAccessPoint();
 
 #endif
