@@ -3,16 +3,17 @@
   "version": "1.0.0",
   "main": "serial-bridge.js",
   "scripts": {
-    "serial-bridge": "node serial-bridge.js"
+    "serial-bridge": "node serial-bridge.js",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "serialport": "^13.0.0"
-  }
+  },
+  "description": ""
 }
