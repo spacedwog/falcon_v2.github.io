@@ -4,6 +4,7 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
+                "C:/Users/felip/falcon_v2.github.io/firmware_vespa/nodemcu_esp8266/**",
                 "C:/Users/felip/AppData/Local/Arduino15/packages/esp8266/hardware/esp8266/3.1.2/**",
                 "C:/Users/felip/Documents/Arduino/libraries/**"
             ],
