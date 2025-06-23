@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { getServerIP, getVespaId } from '../../utils/getServerIP';
+import { getServerIP } from '../../utils/getServerIP';
 import { Alert, Button, StyleSheet, View, Text } from 'react-native';
 
-const IP_NODEMCU = getVespaId();
+const IP_NODEMCU = getServerIP();
 
 export default function App() {
   const [dadoSerial, setDadoSerial] = useState<string>('---');
@@ -15,7 +15,7 @@ export default function App() {
     };
 
     try {
-      const resposta = await fetch(`${IP_NODEMCU}/vespa/comando`, {
+      const resposta = await fetch(`${IP_NODEMCU}/api/comando`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -24,7 +24,7 @@ export default function App() {
       });
 
       if (!resposta.ok) {
-        throw new Error(`Erro HTTP: ${resposta.status}`);
+        throw new Error(`Erro HTTP: ${resposta.status}\nResposta: ${JSON.stringify(resposta.json(), null, 2)}`);
       }
 
       const resultado = await resposta.json();
@@ -36,7 +36,7 @@ export default function App() {
 
   const buscarDadoSerial = async () => {
     try {
-      const resposta = await fetch(`${IP_NODEMCU}/vespa/dados_vespa`);
+      const resposta = await fetch(`${IP_NODEMCU}/api/dados_vespa`);
       const json = await resposta.json();
       setDadoSerial(json.dado || 'Sem dado');
     } catch (err) {

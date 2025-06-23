@@ -21,7 +21,3 @@ export function getServerIP(): string {
 
   return `${LOCAL_IP}:${PORT}`;
 }
-
-export function getVespaId(): string {
-  return "http://192.168.1.4"; // Se for o mesmo IP
-}

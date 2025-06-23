@@ -40,7 +40,7 @@ serial.on('error', (err) => {
 });
 
 // Endpoint POST: envia comando à placa
-app.post('/vespa/comando', (req, res) => {
+app.post('/api/comando', (req, res) => {
   const { comando } = req.body;
 
   if (!['ligar', 'desligar'].includes(comando)) {
@@ -61,7 +61,7 @@ app.post('/vespa/comando', (req, res) => {
 });
 
 // Endpoint GET: retorna o último dado recebido da placa
-app.get('/vespa/dados_vespa', (req, res) => {
+app.get('/api/dados_vespa', (req, res) => {
   res.json({ dado: ultimoDadoSerial || 'Sem dados ainda' });
 });
 
