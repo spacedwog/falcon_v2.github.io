@@ -43,8 +43,8 @@ serial.on('error', (err) => {
 app.post('/api/comando', (req, res) => {
   const { comando } = req.body;
 
-  if (!['ligar', 'desligar'].includes(comando)) {
-    return res.status(400).json({ erro: 'Comando inválido. Use "ligar" ou "desligar".' });
+  if (!['ligar_motor', 'desligar_motor'].includes(comando)) {
+    return res.status(400).json({ erro: 'Comando inválido. Use "ligar_motor" ou "desligar_motor".' });
   }
 
   const sinal = comando === 'ligar_motor' ? '2' : '3';
