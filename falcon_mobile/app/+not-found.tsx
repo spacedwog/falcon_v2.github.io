@@ -11,7 +11,7 @@ export default function NotFoundScreen() {
       <Stack.Screen options={{ title: 'Interface Não Encontrada' }} />
       <ThemedView style={styles.container}>
         <ThemedText type="title">A tela não existe.</ThemedText>
-        <Link href="/App" style={styles.link}>
+        <Link href="/(tabs)/HomeScreen" style={styles.link}>
           <ThemedText type="link">Go to home screen!</ThemedText>
         </Link>
       </ThemedView>
