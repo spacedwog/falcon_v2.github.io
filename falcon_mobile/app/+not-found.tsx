@@ -3,14 +3,15 @@ import { StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import React from 'react';
 
 export default function NotFoundScreen() {
   return (
     <>
-      <Stack.Screen options={{ title: 'Oops!' }} />
+      <Stack.Screen options={{ title: 'Interface Não Encontrada' }} />
       <ThemedView style={styles.container}>
-        <ThemedText type="title">This screen does not exist.</ThemedText>
-        <Link href="/" style={styles.link}>
+        <ThemedText type="title">A tela não existe.</ThemedText>
+        <Link href="/App" style={styles.link}>
           <ThemedText type="link">Go to home screen!</ThemedText>
         </Link>
       </ThemedView>
