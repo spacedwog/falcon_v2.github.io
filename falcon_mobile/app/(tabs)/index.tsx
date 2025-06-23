@@ -24,7 +24,7 @@ export default function Index() {
 
   return (
     <View style={{ padding: 20 }}>
-      <Text>Controle via Serial + PowerShell</Text>
+      <Text>Controle via Nodemcu(esp8266) + PowerShell</Text>
       <Button title="Ligar" onPress={() => enviarComando('ligar')} />
       <Button title="Desligar" onPress={() => enviarComando('desligar')} />
       <Text style={{ marginTop: 20 }}>{status}</Text>
