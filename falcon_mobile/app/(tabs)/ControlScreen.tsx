@@ -7,7 +7,7 @@ const IP_NODEMCU = getServerIP();
 export default function App() {
   const [dadoSerial, setDadoSerial] = useState<string>('---');
 
-  const enviarComando = async (comando: 'ligar' | 'desligar') => {
+  const enviarComando = async (comando: 'ligar_motor' | 'desligar_motor') => {
     const dados = {
       comando,
       origem: 'Falcon Mobile',
@@ -70,9 +70,9 @@ export default function App() {
       <Text style={styles.ipText}>Conectando a: {IP_NODEMCU}</Text>
       <Text style={styles.serialText}>Dado da Vespa: {dadoSerial}</Text>
       <View style={{ height: 16 }} />
-      <Button title="Ligar LED" onPress={() => enviarComando('ligar')} />
+      <Button title="Ligar LED" onPress={() => enviarComando('ligar_motor')} />
       <View style={{ height: 16 }} />
-      <Button title="Desligar LED" onPress={() => enviarComando('desligar')} />
+      <Button title="Desligar LED" onPress={() => enviarComando('desligar_motor')} />
     </View>
   );
 }

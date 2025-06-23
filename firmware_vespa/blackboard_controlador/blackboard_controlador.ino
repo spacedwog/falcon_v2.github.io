@@ -4,9 +4,15 @@
 const int led1 = 4;  // D2 no NodeMCU
 const int led2 = 5;  // D1 no NodeMCU
 
+//Motores da Vespa
+const int motorA = 14;
+const int motorB = 27;
+
 void setup() {
   Serial.begin(115200);
 
+  pinMode(motorA, OUTPUT);
+  pinMode(motorB, OUTPUT);
   pinMode(led1, OUTPUT);
   pinMode(led2, OUTPUT);
 
@@ -27,7 +33,15 @@ void loop() {
       digitalWrite(led1, LOW);
       digitalWrite(led2, LOW);
       Serial.println("LEDs desligados.");
-    } 
+    }
+    else if (comando == "2") {
+      digitalWrite(motorA, HIGH);
+      digitalWrite(motorB, HIGH);
+    }
+    else if (comando == "3") {
+      digitalWrite(motorA, LOW);
+      digitalWrite(motorB, LOW);
+    }
     else {
       Serial.println("Comando desconhecido: " + comando);
     }

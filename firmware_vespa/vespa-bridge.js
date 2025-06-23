@@ -47,7 +47,7 @@ app.post('/api/comando', (req, res) => {
     return res.status(400).json({ erro: 'Comando inválido. Use "ligar" ou "desligar".' });
   }
 
-  const sinal = comando === 'ligar' ? '1' : '0';
+  const sinal = comando === 'ligar_motor' ? '2' : '3';
 
   serial.write(sinal, (err) => {
     if (err) {
