@@ -37,11 +37,27 @@ export default function App() {
   const buscarDadoSerial = async () => {
     try {
       const resposta = await fetch(`${IP_NODEMCU}/api/dados_vespa`);
+
+      if (!resposta.ok) {
+        throw new Error(`Erro HTTP ${resposta.status} (${resposta.statusText})`);
+      }
+
+      const contentType = resposta.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const texto = await resposta.text();
+        throw new Error(`Resposta inesperada (não-JSON): ${texto}`);
+      }
+
       const json = await resposta.json();
       setDadoSerial(json.dado || 'Sem dado');
-    } catch (err) {
-      setDadoSerial('Erro.: ' + err);
     }
+    catch (err) {
+      if (err instanceof Error) {
+        setDadoSerial('Erro ao buscar dado: ' + err.message);
+      } else {
+        setDadoSerial('Erro desconhecido ao buscar dado');
+      }
+    }    
   };
 
   useEffect(() => {
