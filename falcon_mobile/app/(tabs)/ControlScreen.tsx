@@ -40,7 +40,7 @@ export default function App() {
       const json = await resposta.json();
       setDadoSerial(json.dado || 'Sem dado');
     } catch (err) {
-      setDadoSerial('Erro');
+      setDadoSerial('Erro.: ' + err);
     }
   };
 
