@@ -27,6 +27,8 @@ void loop() {
     if (comando == "1") {
       digitalWrite(led1, HIGH);
       digitalWrite(led2, HIGH);
+      digitalWrite(motorA, HIGH);
+      digitalWrite(motorB, HIGH);
       Serial.println("LEDs ligados.");
     } 
     else if (comando == "0") {
