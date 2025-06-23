@@ -1,5 +1,5 @@
-#ifndef WIFI_AP_CONFIG_H
-#define WIFI_AP_CONFIG_H
+#ifndef NODEMCU_ESP8266_H
+#define NODEMCU_ESP8266_H
 
 #include <ESP8266WiFi.h>
 
