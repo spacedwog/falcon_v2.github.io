@@ -1,22 +1,35 @@
-#include <WiFi.h> // certifique-se de que é a biblioteca certa para ESP32
+#include <WiFi.h>
 
-const char* ssid = "FAMILIA SANTOS-5G";
+// Credenciais da rede (2.4GHz)
+const char* ssid = "FAMILIA SANTOS";  // ⚠️ rede 2.4GHz
 const char* password = "6z2h1j3k9f";
-WiFiServer server(3000);  // Porta definida aqui
+
+WiFiServer server(3000);
+
+// Pinos dos LEDs
+const int led1 = 4;  // D2 no NodeMCU
+const int led2 = 5;  // D1 no NodeMCU
 
 void setup() {
   Serial.begin(115200);
-  WiFi.begin(ssid, password); // se der erro, use: (char*)ssid
 
+  // Configura pinos como saída
+  pinMode(led1, OUTPUT);
+  pinMode(led2, OUTPUT);
+  digitalWrite(led1, LOW);
+  digitalWrite(led2, LOW);
+
+  // Conecta ao Wi-Fi
+  WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.println("Conectando ao Wi-Fi...");
   }
 
-  Serial.print("Conectado! IP: ");
+  Serial.println("Wi-Fi conectado!");
+  Serial.print("Endereço IP: ");
   Serial.println(WiFi.localIP());
-
-  Serial.print("Acesse: http://");
+  Serial.print("Acesse via navegador: http://");
   Serial.print(WiFi.localIP());
   Serial.println(":3000");
 
@@ -26,7 +39,37 @@ void setup() {
 void loop() {
   WiFiClient client = server.available();
   if (client) {
-    client.println("Olá do ESP32 (VESPA)!");
+    Serial.println("Cliente conectado.");
+
+    while (client.connected() && !client.available()) delay(1);
+
+    String req = client.readStringUntil('\r');
+    Serial.print("Requisição: ");
+    Serial.println(req);
+    client.read(); // limpa o '\n'
+
+    // Processa os comandos
+    if (req.indexOf("GET /ligar") != -1) {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+    } else if (req.indexOf("GET /desligar") != -1) {
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+    }
+
+    // Envia resposta HTTP
+    client.println("HTTP/1.1 200 OK");
+    client.println("Content-Type: text/html");
+    client.println("Connection: close");
+    client.println();
+    client.println("<!DOCTYPE html><html><head><meta charset='utf-8'><title>Controle VESPA</title></head><body>");
+    client.println("<h1>Controle de LEDs - VESPA</h1>");
+    client.println("<p><a href=\"/ligar\"><button>Ligar LEDs</button></a></p>");
+    client.println("<p><a href=\"/desligar\"><button>Desligar LEDs</button></a></p>");
+    client.println("</body></html>");
+
+    delay(10);
     client.stop();
+    Serial.println("Cliente desconectado.");
   }
 }

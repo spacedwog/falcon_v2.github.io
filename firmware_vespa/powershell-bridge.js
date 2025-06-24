@@ -45,7 +45,7 @@ app.post('/api/comando', (req, res) => {
     return res.status(400).json({ erro: 'Comando inválido' });
   }
 
-  const mensagem = comando === 'ligar' ? '1' : '0';
+  const mensagem = comando === 'ligar' ? 'L' : 'D';
 
   portaSerial.write(mensagem, (err) => {
     if (err) {

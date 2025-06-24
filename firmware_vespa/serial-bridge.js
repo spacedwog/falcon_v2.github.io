@@ -34,7 +34,7 @@ app.post('/api/comando', (req, res) => {
     return res.status(400).json({ erro: 'Comando inválido' });
   }
 
-  const sinal = comando === 'ligar' ? '1' : '0';
+  const sinal = comando === 'ligar' ? 'L' : 'D';
 
   serial.write(sinal, (err) => {
     if (err) {

@@ -1,53 +1,55 @@
-// Controle de LEDs via comandos seriais
+#include <Wire.h>
 
-// Pinos para LEDs
-const int led1 = 4;  // D2 no NodeMCU
-const int led2 = 5;  // D1 no NodeMCU
+// Endereço do dispositivo escravo (ex: VESPA, sensor I2C)
+#define SLAVE_ADDRESS 0x08
 
-//Motores da Vespa
-const int motorA = 14;
-const int motorB = 27;
+String comandoRecebido = "";
 
 void setup() {
   Serial.begin(115200);
-
-  pinMode(motorA, OUTPUT);
-  pinMode(motorB, OUTPUT);
-  pinMode(led1, OUTPUT);
-  pinMode(led2, OUTPUT);
-
-  Serial.println("Sistema pronto. Use comandos: 1 (ligar), 0 (desligar)");
+  Wire.begin();  // Inicia como mestre
+  Serial.println("Controlador Blackboard iniciado.");
 }
 
 void loop() {
+  // Verifica se há dados recebidos via Serial
   if (Serial.available()) {
-    String comando = Serial.readStringUntil('\n');
-    comando.trim();
+    comandoRecebido = Serial.readStringUntil('\n');
+    comandoRecebido.trim();
 
-    if (comando == "1") {
-      digitalWrite(led1, HIGH);
-      digitalWrite(led2, HIGH);
-      digitalWrite(motorA, HIGH);
-      digitalWrite(motorB, HIGH);
-      Serial.println("LEDs ligados.");
-    } 
-    else if (comando == "0") {
-      digitalWrite(led1, LOW);
-      digitalWrite(led2, LOW);
-      Serial.println("LEDs desligados.");
-    }
-    else if (comando == "2") {
-      digitalWrite(motorA, HIGH);
-      digitalWrite(motorB, HIGH);
-    }
-    else if (comando == "3") {
-      digitalWrite(motorA, LOW);
-      digitalWrite(motorB, LOW);
-    }
-    else {
-      Serial.println("Comando desconhecido: " + comando);
-    }
+    Serial.print("Comando recebido: ");
+    Serial.println(comandoRecebido);
+
+    enviarParaEscravo(comandoRecebido);
+    delay(100);
+    receberRespostaEscravo();
   }
 
-  delay(100);
+  delay(200);
+}
+
+// Envia comando para escravo via I2C
+void enviarParaEscravo(String comando) {
+  Wire.beginTransmission(SLAVE_ADDRESS);
+  Wire.write(comando.c_str());
+  Wire.endTransmission();
+  Serial.println("Comando enviado ao escravo.");
+}
+
+// Lê resposta do escravo via I2C
+void receberRespostaEscravo() {
+  Wire.requestFrom(SLAVE_ADDRESS, 32); // espera até 32 bytes
+
+  String resposta = "";
+  while (Wire.available()) {
+    char c = Wire.read();
+    resposta += c;
+  }
+
+  if (resposta.length() > 0) {
+    Serial.print("Resposta do escravo: ");
+    Serial.println(resposta);
+  } else {
+    Serial.println("Sem resposta do escravo.");
+  }
 }
