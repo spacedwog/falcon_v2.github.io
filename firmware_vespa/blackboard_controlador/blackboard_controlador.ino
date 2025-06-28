@@ -31,7 +31,7 @@ void loop() {
 // Envia comando para escravo via I2C
 void enviarParaEscravo(String comando) {
   Wire.beginTransmission(SLAVE_ADDRESS);
-  Wire.write(comando.c_str());
+  Wire.write((const uint8_t*)comando.c_str(), comando.length());  // Cast explícito
   Wire.endTransmission();
   Serial.println("Comando enviado ao escravo.");
 }

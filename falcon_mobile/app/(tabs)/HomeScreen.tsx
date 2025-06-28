@@ -52,7 +52,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text style={styles.ipText}>Conectando a: {IP_NODEMCU}</Text>
-      <Text style={styles.serialText}>Dado da COM3: {dadoSerial}</Text>
+      <Text style={styles.serialText}>Dado da COM1: {dadoSerial}</Text>
       <View style={{ height: 16 }} />
       <Button title="Ligar LED" onPress={() => enviarComando('ligar')} />
       <View style={{ height: 16 }} />
