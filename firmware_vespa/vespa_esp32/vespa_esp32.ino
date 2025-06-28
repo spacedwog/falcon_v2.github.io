@@ -7,8 +7,8 @@ const char* password = "6z2h1j3k9f";
 WiFiServer server(3000);
 
 // Pinos dos LEDs
-const int led1 = 4;  // D2 no NodeMCU
-const int led2 = 5;  // D1 no NodeMCU
+const int led1 = 14;  // D2 no NodeMCU
+const int led2 = 27;  // D1 no NodeMCU
 
 void setup() {
   Serial.begin(115200);
@@ -55,6 +55,9 @@ void loop() {
     } else if (req.indexOf("GET /desligar") != -1) {
       digitalWrite(led1, LOW);
       digitalWrite(led2, LOW);
+    } else if (req.indexOf("GET /api/dados") != -1) {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
     }
 
     // Envia resposta HTTP

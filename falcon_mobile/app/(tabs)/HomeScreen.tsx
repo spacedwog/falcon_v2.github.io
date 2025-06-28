@@ -4,7 +4,7 @@ import { Alert, Button, StyleSheet, View, Text } from 'react-native';
 
 const IP_NODEMCU = getServerIP();
 
-export default function App() {
+export default function HomeScreen() {
   const [dadoSerial, setDadoSerial] = useState<string>('---');
 
   const enviarComando = async (comando: 'ligar' | 'desligar') => {
