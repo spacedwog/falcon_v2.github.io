@@ -50,11 +50,6 @@ app.get('/api/dados', (req, res) => {
   res.json({ dado: ultimoDadoSerial });
 });
 
-// Endpoint GET: retorna o último dado recebido da placa
-app.get('/api/dados_vespa', (req, res) => {
-  res.json({ dado: ultimoDadoSerial || 'Sem dados ainda' });
-});
-
 app.listen(porta, () => {
   console.log(`🚀 Servidor HTTP rodando em http://localhost:${porta}`);
 });
