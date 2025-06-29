@@ -39,6 +39,11 @@ serial.on('error', (err) => {
   console.error('❌ Erro serial:', err.message);
 });
 
+// Rota padrão para GET /
+app.get('/', (req, res) => {
+  res.send('🛠️ API Vespa Bridge rodando. Use /api/comando ou /api/dados_vespa');
+});
+
 // Endpoint POST: envia comando à placa
 app.post('/api/comando', (req, res) => {
   const { comando } = req.body;

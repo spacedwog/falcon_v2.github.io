@@ -28,6 +28,11 @@ serial.on('error', (err) => {
 
 app.use(bodyParser.json());
 
+// Rota padrão para GET /
+app.get('/', (req, res) => {
+  res.send('🛠️ API Vespa Bridge rodando. Use /api/comando ou /api/dados_vespa');
+});
+
 app.post('/api/comando', (req, res) => {
   const { comando } = req.body;
   if (!['ligar', 'desligar'].includes(comando)) {

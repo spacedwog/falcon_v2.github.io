@@ -29,6 +29,11 @@ portaSerial.on('data', (data) => {
   console.log('📥 Dados recebidos da serial:', data.toString());
 });
 
+// Rota padrão para GET /
+app.get('/', (req, res) => {
+  res.send('🛠️ API Vespa Bridge rodando. Use /api/comando ou /api/dados_vespa');
+});
+
 // API POST para enviar comando
 app.post('/api/comando', (req, res) => {
   const { comando } = req.body;
