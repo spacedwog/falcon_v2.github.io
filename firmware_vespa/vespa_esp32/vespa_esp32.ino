@@ -9,6 +9,10 @@ WiFiServer server(3000);
 const int led1 = 14;
 const int led2 = 4;
 
+// Sensor ultrassônico
+const int trigPin = 5;
+const int echoPin = 18;
+
 void setup() {
   Serial.begin(115200);
 
@@ -17,7 +21,10 @@ void setup() {
   digitalWrite(led1, LOW);
   digitalWrite(led2, LOW);
 
-  WiFi.softAP(ssid, password);  // Cria rede Wi-Fi local
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  WiFi.softAP(ssid, password);
   delay(1000);
   IPAddress IP = WiFi.softAPIP();
   Serial.println("Wi-Fi local criado (AP)!");
@@ -52,16 +59,15 @@ void loop() {
   path.trim();
   method.trim();
 
+  // POST /
   if (method == "POST" && path == "/") {
     Serial.println("Requisição POST recebida.");
 
-    // Ignora headers
     while (client.available()) {
       String linha = client.readStringUntil('\n');
       if (linha == "\r" || linha == "") break;
     }
 
-    // Lê o corpo JSON
     String body = "";
     while (client.available()) {
       body += char(client.read());
@@ -104,6 +110,7 @@ void loop() {
     Serial.println("Resposta enviada e cliente desconectado.");
   }
 
+  // GET /api/dados_vespa
   else if (method == "GET" && path == "/api/dados_vespa") {
     int estado1 = digitalRead(led1);
     int estado2 = digitalRead(led2);
@@ -119,6 +126,29 @@ void loop() {
     Serial.println("GET /api/dados_vespa atendido.");
   }
 
+  // GET /api/distancia
+  else if (method == "GET" && path == "/api/distancia") {
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+
+    long duracao = pulseIn(echoPin, HIGH);
+    float distancia = duracao * 0.034 / 2.0;
+
+    String resposta = "{\"distancia_cm\":" + String(distancia, 2) + "}";
+
+    client.println("HTTP/1.1 200 OK");
+    client.println("Content-Type: application/json");
+    client.println("Connection: close");
+    client.println();
+    client.println(resposta);
+    client.stop();
+    Serial.println("GET /api/distancia atendido.");
+  }
+
+  // Rota inválida
   else {
     String resposta = "{\"erro\":\"rota invalida\",\"rota\":\"" + path + "\"}";
     client.println("HTTP/1.1 404 Not Found");

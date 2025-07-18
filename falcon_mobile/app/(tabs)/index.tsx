@@ -4,10 +4,13 @@ import { View, Text, Button } from 'react-native';
 
 export default function Index() {
   const [status, setStatus] = useState('');
+  const [distancia, setDistancia] = useState<number | null>(null);
+
+  const IP_VESPA = 'http://192.168.4.1:3000';
 
   const enviarComando = async (comando: 'ligar' | 'desligar') => {
     try {
-      const resposta = await fetch('http://192.168.15.166:3000/', {
+      const resposta = await fetch(`${IP_VESPA}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -22,12 +25,36 @@ export default function Index() {
     }
   };
 
+  const lerDistancia = async () => {
+    try {
+      const resposta = await fetch(`${IP_VESPA}/api/distancia`);
+      const json = await resposta.json();
+      setDistancia(json.distancia_cm);
+    } catch (err) {
+      setDistancia(null);
+      setStatus('Erro ao ler distância');
+    }
+  };
+
   return (
     <View style={{ padding: 20 }}>
-      <Text>Controle via Nodemcu(esp8266) + PowerShell</Text>
+      <Text style={{ fontSize: 18, marginBottom: 10 }}>
+        Controle via Vespa (ESP32) + Sensor Ultrassônico
+      </Text>
+
       <Button title="Ligar" onPress={() => enviarComando("ligar")} />
       <Button title="Desligar" onPress={() => enviarComando("desligar")} />
-      <Text style={{ marginTop: 20 }}>{status}</Text>
+      <View style={{ marginVertical: 10 }} />
+
+      <Button title="Ler Distância" onPress={lerDistancia} />
+
+      <Text style={{ marginTop: 20 }}>
+        Status: {status || 'Aguardando...'}
+      </Text>
+
+      <Text style={{ marginTop: 10 }}>
+        Distância: {distancia !== null ? `${distancia.toFixed(2)} cm` : '---'}
+      </Text>
     </View>
   );
 }
