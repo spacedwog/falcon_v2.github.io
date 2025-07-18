@@ -1,162 +1,180 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
+#include "RoboCore_Vespa.h"
 
+// ========================
+// CONFIGURAÇÃO DO WIFI
+// ========================
 const char* ssid = "FALCON_WIFI";
 const char* password = "12345678";
-
 WiFiServer server(3000);
 
-const int led1 = 14;
-const int led2 = 4;
-
-// Sensor ultrassônico
+// ========================
+// PINOS
+// ========================
 const int trigPin = 5;
 const int echoPin = 18;
 
-void setup() {
-  Serial.begin(115200);
+// ========================
+// OBJETOS
+// ========================
+VespaMotors motors;
+bool sensorAtivo = false;  // Estado do sensor
 
-  pinMode(led1, OUTPUT);
-  pinMode(led2, OUTPUT);
-  digitalWrite(led1, LOW);
-  digitalWrite(led2, LOW);
+// ========================
+// SETUP
+// ========================
+void setup() {
+  Serial.begin(9600);
 
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
   WiFi.softAP(ssid, password);
   delay(1000);
-  IPAddress IP = WiFi.softAPIP();
   Serial.println("Wi-Fi local criado (AP)!");
   Serial.print("IP do AP: ");
-  Serial.println(IP);
+  Serial.println(WiFi.softAPIP());
+
   server.begin();
 }
 
+// ========================
+// LOOP PRINCIPAL
+// ========================
 void loop() {
   WiFiClient client = server.available();
-  if (!client) return;
-
-  Serial.println("Cliente conectado.");
-
-  unsigned long timeout = millis();
-  while (client.connected() && !client.available()) {
-    if (millis() - timeout > 1000) {
-      Serial.println("Timeout aguardando dados.");
-      client.stop();
-      return;
-    }
-    delay(1);
-  }
-
-  String req = client.readStringUntil('\r');
-  Serial.print("Cabeçalho da requisição: ");
-  Serial.println(req);
-  client.read(); // consome o \n
-
-  String method = req.substring(0, req.indexOf(' '));
-  String path = req.substring(req.indexOf(' ') + 1, req.indexOf("HTTP") - 1);
-  path.trim();
-  method.trim();
-
-  // POST /
-  if (method == "POST" && path == "/") {
-    Serial.println("Requisição POST recebida.");
-
-    while (client.available()) {
-      String linha = client.readStringUntil('\n');
-      if (linha == "\r" || linha == "") break;
-    }
-
-    String body = "";
-    while (client.available()) {
-      body += char(client.read());
-    }
-
-    Serial.println("JSON recebido:");
-    Serial.println(body);
-
-    StaticJsonDocument<200> doc;
-    DeserializationError erro = deserializeJson(doc, body);
-
-    String resposta;
-
-    if (erro) {
-      resposta = "{\"erro\":\"JSON inválido\"}";
-    } else {
-      const char* comando = doc["comando"];
-      const char* origem = doc["origem"];
-      String timestamp = doc["timestamp"];
-
-      if (String(comando) == "ligar") {
-        digitalWrite(led1, HIGH);
-        digitalWrite(led2, HIGH);
-        resposta = "{\"status\":\"ligado\",\"origem\":\"" + String(origem) + "\",\"timestamp\":\"" + timestamp + "\"}";
-      } else if (String(comando) == "desligar") {
-        digitalWrite(led1, LOW);
-        digitalWrite(led2, LOW);
-        resposta = "{\"status\":\"desligado\",\"origem\":\"" + String(origem) + "\",\"timestamp\":\"" + timestamp + "\"}";
-      } else {
-        resposta = "{\"erro\":\"comando desconhecido\",\"comando\":\"" + String(comando) + "\"}";
+  if (client) {
+    Serial.println("Cliente conectado.");
+    unsigned long timeout = millis();
+    while (client.connected() && !client.available()) {
+      if (millis() - timeout > 1000) {
+        client.stop();
+        return;
       }
     }
 
-    client.println("HTTP/1.1 200 OK");
-    client.println("Content-Type: application/json");
-    client.println("Connection: close");
-    client.println();
-    client.println(resposta);
-    client.stop();
-    Serial.println("Resposta enviada e cliente desconectado.");
+    String req = client.readStringUntil('\r');
+    client.read();  // consome \n
+    String method = req.substring(0, req.indexOf(' '));
+    String path = req.substring(req.indexOf(' ') + 1, req.indexOf("HTTP") - 1);
+    path.trim();
+    method.trim();
+
+    if (method == "POST" && path == "/") {
+      // Ignora cabeçalhos
+      while (client.available()) {
+        String linha = client.readStringUntil('\n');
+        if (linha == "\r" || linha == "") break;
+      }
+
+      // Lê o corpo da requisição
+      String body = "";
+      while (client.available()) {
+        body += char(client.read());
+      }
+
+      Serial.println("JSON recebido:");
+      Serial.println(body);
+
+      StaticJsonDocument<256> doc;
+      DeserializationError erro = deserializeJson(doc, body);
+      String resposta;
+
+      if (erro) {
+        resposta = "{\"erro\":\"JSON inválido\"}";
+      } else {
+        String comando = doc["comando"] | "";
+        String origem = doc["origem"] | "";
+        String timestamp = doc["timestamp"] | "";
+        int valor = doc["valor"] | 100;
+        int angulo = doc["angulo"] | 90;
+
+        if (comando == "ligar") {
+          sensorAtivo = true;
+          resposta = "{\"status\":\"Sensor ligado\"}";
+
+        } else if (comando == "desligar") {
+          sensorAtivo = false;
+          resposta = "{\"status\":\"Sensor desligado\"}";
+
+        } else if (comando == "frente") {
+          motors.backward(valor);
+          resposta = "{\"acao\":\"frente\",\"velocidade\":" + String(valor) + "}";
+
+        } else if (comando == "tras") {
+          motors.forward(valor);
+          resposta = "{\"acao\":\"tras\",\"velocidade\":" + String(valor) + "}";
+
+        } else if (comando == "esquerda") {
+          motors.setSpeedRight(valor);
+          resposta = "{\"acao\":\"esquerda\",\"velocidade\":" + String(valor) + "}";
+
+        } else if (comando == "direita") {
+          motors.setSpeedLeft(valor);
+          resposta = "{\"acao\":\"direita\",\"velocidade\":" + String(valor) + "}";
+
+        } else if (comando == "parar") {
+          motors.stop();
+          resposta = "{\"acao\":\"parar\"}";
+
+        } else if (comando == "girar") {
+          motors.turn(angulo, valor);
+          resposta = "{\"acao\":\"girar\",\"angulo\":" + String(angulo) + ",\"velocidade\":" + String(valor) + "}";
+
+        } else {
+          resposta = "{\"erro\":\"comando desconhecido\",\"comando\":\"" + comando + "\"}";
+        }
+      }
+
+      // Envia resposta
+      client.println("HTTP/1.1 200 OK");
+      client.println("Content-Type: application/json");
+      client.println("Connection: close");
+      client.println();
+      client.println(resposta);
+      client.stop();
+      Serial.println("Resposta enviada e cliente desconectado.");
+    }
+
+    else if (method == "GET" && path == "/api/distancia") {
+      String resposta;
+      if (sensorAtivo) {
+        digitalWrite(trigPin, LOW);
+        delayMicroseconds(2);
+        digitalWrite(trigPin, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(trigPin, LOW);
+        long duracao = pulseIn(echoPin, HIGH);
+        float distancia = duracao * 0.034 / 2.0;
+        resposta = "{\"distancia_cm\":" + String(distancia, 2) + "}";
+      } else {
+        resposta = "{\"erro\":\"Sensor desligado\"}";
+      }
+
+      client.println("HTTP/1.1 200 OK");
+      client.println("Content-Type: application/json");
+      client.println("Connection: close");
+      client.println();
+      client.println(resposta);
+      client.stop();
+    }
+
+    else {
+      String resposta = "{\"erro\":\"rota invalida\",\"rota\":\"" + path + "\"}";
+      client.println("HTTP/1.1 404 Not Found");
+      client.println("Content-Type: application/json");
+      client.println("Connection: close");
+      client.println();
+      client.println(resposta);
+      client.stop();
+    }
   }
 
-  // GET /api/dados_vespa
-  else if (method == "GET" && path == "/api/dados_vespa") {
-    int estado1 = digitalRead(led1);
-    int estado2 = digitalRead(led2);
-
-    String resposta = "{\"led1\":" + String(estado1) + ",\"led2\":" + String(estado2) + ",\"dado\":\"Estado atualizado\"}";
-
-    client.println("HTTP/1.1 200 OK");
-    client.println("Content-Type: application/json");
-    client.println("Connection: close");
-    client.println();
-    client.println(resposta);
-    client.stop();
-    Serial.println("GET /api/dados_vespa atendido.");
-  }
-
-  // GET /api/distancia
-  else if (method == "GET" && path == "/api/distancia") {
-    digitalWrite(trigPin, LOW);
-    delayMicroseconds(2);
-    digitalWrite(trigPin, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(trigPin, LOW);
-
-    long duracao = pulseIn(echoPin, HIGH);
-    float distancia = duracao * 0.034 / 2.0;
-
-    String resposta = "{\"distancia_cm\":" + String(distancia, 2) + "}";
-
-    client.println("HTTP/1.1 200 OK");
-    client.println("Content-Type: application/json");
-    client.println("Connection: close");
-    client.println();
-    client.println(resposta);
-    client.stop();
-    Serial.println("GET /api/distancia atendido.");
-  }
-
-  // Rota inválida
-  else {
-    String resposta = "{\"erro\":\"rota invalida\",\"rota\":\"" + path + "\"}";
-    client.println("HTTP/1.1 404 Not Found");
-    client.println("Content-Type: application/json");
-    client.println("Connection: close");
-    client.println();
-    client.println(resposta);
-    client.stop();
-    Serial.println("Rota inválida acessada: " + path);
+  // 📥 Leitura da serial
+  if (Serial.available()) {
+    String dadoRecebido = Serial.readStringUntil('\n');
+    Serial.println("📡 Dado recebido via Serial:");
+    Serial.println(dadoRecebido);
   }
 }
