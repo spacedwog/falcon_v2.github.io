@@ -1,76 +1,79 @@
-// vespa-bridge.js
+// vespa-bridge.js (Wi-Fi version)
 
 const express = require('express');
-const { SerialPort } = require('serialport');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const fetch = require('node-fetch'); // npm install node-fetch@2
 
 const app = express();
 const porta = 3000;
 
-let ultimoDadoSerial = ''; // Armazena o último dado recebido da serial
+// IP do ESP32 (ajuste conforme necessário)
+const IP_ESP32 = 'http://192.168.15.166:3000';
 
-// Ativa o CORS para permitir requisições de apps externos
 app.use(cors());
-
-// Middleware para processar JSON no corpo das requisições
 app.use(bodyParser.json());
 
-// Configuração da porta serial (ajuste 'COM4' conforme necessário no seu sistema)
-const serial = new SerialPort({
-  path: 'COM4',
-  baudRate: 115200,
-});
+let ultimoDadoESP = 'Sem dados ainda';
 
-// Evento: porta serial conectada
-serial.on('open', () => {
-  console.log('✅ Conectado à COM4');
-});
-
-// Evento: dado recebido da serial
-serial.on('data', (data) => {
-  const texto = data.toString().trim();
-  console.log('📥 Dado recebido:', texto);
-  ultimoDadoSerial = texto;
-});
-
-// Evento: erro na porta serial
-serial.on('error', (err) => {
-  console.error('❌ Erro serial:', err.message);
-});
-
-// Rota padrão para GET /
+// Rota padrão
 app.get('/', (req, res) => {
-  res.send('🛠️ API Vespa Bridge rodando. Use /api/comando ou /api/dados_vespa');
+  res.send('🌐 API Vespa Wi-Fi Bridge rodando. Use /api/comando ou /api/dados_vespa');
 });
 
-// Endpoint POST: envia comando à placa
-app.post('/api/comando', (req, res) => {
+// Enviar comando para ESP32 via Wi-Fi
+app.post('/api/comando', async (req, res) => {
   const { comando } = req.body;
 
   if (!['ligar', 'desligar'].includes(comando)) {
     return res.status(400).json({ erro: 'Comando inválido. Use "ligar" ou "desligar".' });
   }
 
-  const sinal = comando === 'ligar' ? 'L' : 'D';
+  const dados = {
+    comando,
+    origem: 'Vespa Bridge (Node.js)',
+    timestamp: new Date().toISOString(),
+  };
 
-  serial.write(sinal, (err) => {
-    if (err) {
-      console.error('❌ Erro ao enviar para a serial:', err);
-      return res.status(500).json({ erro: 'Falha na comunicação serial' });
+  try {
+    const resposta = await fetch(`${IP_ESP32}/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados),
+    });
+
+    if (!resposta.ok) {
+      const texto = await resposta.text();
+      throw new Error(`Erro HTTP ${resposta.status}: ${texto}`);
     }
 
-    console.log(`➡️ Comando enviado: ${sinal}`);
-    res.json({ status: 'Comando enviado com sucesso', comando });
-  });
+    const json = await resposta.json();
+    res.json({ status: 'Comando enviado com sucesso', retorno: json });
+  } catch (erro) {
+    console.error('❌ Erro ao enviar comando para ESP:', erro.message);
+    res.status(500).json({ erro: 'Falha na comunicação com ESP32' });
+  }
 });
 
-// Endpoint GET: retorna o último dado recebido da placa
-app.get('/api/dados_vespa', (req, res) => {
-  res.json({ dado: ultimoDadoSerial || 'Sem dados ainda' });
+// Buscar dados do ESP32
+app.get('/api/dados_vespa', async (req, res) => {
+  try {
+    const resposta = await fetch(`${IP_ESP32}/api/dados_vespa`);
+
+    if (!resposta.ok) {
+      throw new Error(`Erro HTTP ${resposta.status}`);
+    }
+
+    const json = await resposta.json();
+    ultimoDadoESP = json.dado || 'Sem dado';
+    res.json({ dado: ultimoDadoESP });
+  } catch (erro) {
+    console.error('❌ Erro ao buscar dados do ESP:', erro.message);
+    res.status(500).json({ erro: 'Falha ao buscar dados do ESP32' });
+  }
 });
 
-// Inicializa o servidor HTTP
+// Inicia o servidor local
 app.listen(porta, () => {
-  console.log(`🚀 Servidor HTTP rodando em http://localhost:${porta}`);
+  console.log(`🚀 Servidor Wi-Fi rodando em http://localhost:${porta}`);
 });
