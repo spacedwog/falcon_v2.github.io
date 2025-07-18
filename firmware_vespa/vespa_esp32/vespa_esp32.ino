@@ -1,8 +1,8 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
 
-const char* ssid = "FAMILIA SANTOS";
-const char* password = "6z2h1j3k9f";
+const char* ssid = "FALCON_WIFI";
+const char* password = "12345678";
 
 WiFiServer server(3000);
 
@@ -17,15 +17,12 @@ void setup() {
   digitalWrite(led1, LOW);
   digitalWrite(led2, LOW);
 
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.println("Conectando ao Wi-Fi...");
-  }
-
-  Serial.println("Wi-Fi conectado!");
-  Serial.print("IP: ");
-  Serial.println(WiFi.localIP());
+  WiFi.softAP(ssid, password);  // Cria rede Wi-Fi local
+  delay(1000);
+  IPAddress IP = WiFi.softAPIP();
+  Serial.println("Wi-Fi local criado (AP)!");
+  Serial.print("IP do AP: ");
+  Serial.println(IP);
   server.begin();
 }
 
@@ -58,13 +55,13 @@ void loop() {
   if (method == "POST" && path == "/") {
     Serial.println("Requisição POST recebida.");
 
-    // Lê o restante dos headers e corpo
+    // Ignora headers
     while (client.available()) {
       String linha = client.readStringUntil('\n');
-      if (linha == "\r" || linha == "") break; // Fim do cabeçalho
+      if (linha == "\r" || linha == "") break;
     }
 
-    // Aguarda corpo JSON
+    // Lê o corpo JSON
     String body = "";
     while (client.available()) {
       body += char(client.read());
