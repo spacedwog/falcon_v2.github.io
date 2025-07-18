@@ -7,7 +7,7 @@ export default function Index() {
 
   const enviarComando = async (comando: 'ligar' | 'desligar') => {
     try {
-      const resposta = await fetch('http://192.168.15.8:3000/api/comando', {
+      const resposta = await fetch('http://192.168.15.166:3000/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
