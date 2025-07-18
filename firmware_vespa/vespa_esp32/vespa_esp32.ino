@@ -1,14 +1,13 @@
 #include <WiFi.h>
+#include <ArduinoJson.h>
 
-// Credenciais da rede Wi-Fi
-const char* ssid = "FAMILIA SANTOS";  // ⚠️ rede 2.4GHz
+const char* ssid = "FAMILIA SANTOS";
 const char* password = "6z2h1j3k9f";
 
 WiFiServer server(3000);
 
-// Pinos dos LEDs
-const int led1 = 14;  // D2 no NodeMCU
-const int led2 = 4;   // D1 no NodeMCU
+const int led1 = 14;
+const int led2 = 4;
 
 void setup() {
   Serial.begin(115200);
@@ -27,68 +26,110 @@ void setup() {
   Serial.println("Wi-Fi conectado!");
   Serial.print("IP: ");
   Serial.println(WiFi.localIP());
-  Serial.print("API disponível em: http://");
-  Serial.print(WiFi.localIP());
-  Serial.println(":3000");
-
   server.begin();
 }
 
 void loop() {
   WiFiClient client = server.available();
-  if (client) {
-    Serial.println("Cliente conectado.");
+  if (!client) return;
 
-    unsigned long startTime = millis();
-    while (client.connected() && !client.available()) {
-      if (millis() - startTime > 1000) {
-        Serial.println("Timeout do cliente.");
-        client.stop();
-        return;
-      }
-      delay(1);
+  Serial.println("Cliente conectado.");
+
+  unsigned long timeout = millis();
+  while (client.connected() && !client.available()) {
+    if (millis() - timeout > 1000) {
+      Serial.println("Timeout aguardando dados.");
+      client.stop();
+      return;
+    }
+    delay(1);
+  }
+
+  String req = client.readStringUntil('\r');
+  Serial.print("Cabeçalho da requisição: ");
+  Serial.println(req);
+  client.read(); // consome o \n
+
+  String method = req.substring(0, req.indexOf(' '));
+  String path = req.substring(req.indexOf(' ') + 1, req.indexOf("HTTP") - 1);
+  path.trim();
+  method.trim();
+
+  if (method == "POST" && path == "/") {
+    Serial.println("Requisição POST recebida.");
+
+    // Lê o restante dos headers e corpo
+    while (client.available()) {
+      String linha = client.readStringUntil('\n');
+      if (linha == "\r" || linha == "") break; // Fim do cabeçalho
     }
 
-    String req = client.readStringUntil('\r');
-    Serial.print("Requisição: ");
-    Serial.println(req);
-    client.read(); // consome '\n'
+    // Aguarda corpo JSON
+    String body = "";
+    while (client.available()) {
+      body += char(client.read());
+    }
 
-    String path = req.substring(4, req.indexOf("HTTP") - 1);
-    path.trim();
+    Serial.println("JSON recebido:");
+    Serial.println(body);
+
+    StaticJsonDocument<200> doc;
+    DeserializationError erro = deserializeJson(doc, body);
+
+    String resposta;
+
+    if (erro) {
+      resposta = "{\"erro\":\"JSON inválido\"}";
+    } else {
+      const char* comando = doc["comando"];
+      const char* origem = doc["origem"];
+      String timestamp = doc["timestamp"];
+
+      if (String(comando) == "ligar") {
+        digitalWrite(led1, HIGH);
+        digitalWrite(led2, HIGH);
+        resposta = "{\"status\":\"ligado\",\"origem\":\"" + String(origem) + "\",\"timestamp\":\"" + timestamp + "\"}";
+      } else if (String(comando) == "desligar") {
+        digitalWrite(led1, LOW);
+        digitalWrite(led2, LOW);
+        resposta = "{\"status\":\"desligado\",\"origem\":\"" + String(origem) + "\",\"timestamp\":\"" + timestamp + "\"}";
+      } else {
+        resposta = "{\"erro\":\"comando desconhecido\",\"comando\":\"" + String(comando) + "\"}";
+      }
+    }
 
     client.println("HTTP/1.1 200 OK");
     client.println("Content-Type: application/json");
     client.println("Connection: close");
     client.println();
-
-    if (path == "/ligar") {
-      digitalWrite(led1, HIGH);
-      digitalWrite(led2, HIGH);
-      client.print("{\"status\":\"ok\",\"led1\":1,\"led2\":1}");
-    }
-    else if (path == "/desligar") {
-      digitalWrite(led1, LOW);
-      digitalWrite(led2, LOW);
-      client.print("{\"status\":\"ok\",\"led1\":0,\"led2\":0}");
-    }
-    else if (path == "/api/dados") {
-      int estado1 = digitalRead(led1);
-      int estado2 = digitalRead(led2);
-      client.print("{\"led1\":");
-      client.print(estado1);
-      client.print(",\"led2\":");
-      client.print(estado2);
-      client.print("}");
-    }
-    else {
-      client.print("{\"erro\":\"rota invalida\",\"rota\":\"");
-      client.print(path);
-      client.println("\"}");
-    }
-
-    delay(10);
+    client.println(resposta);
     client.stop();
-    Serial.println("Cliente desconectado.");
+    Serial.println("Resposta enviada e cliente desconectado.");
+  }
+
+  else if (method == "GET" && path == "/api/dados_vespa") {
+    int estado1 = digitalRead(led1);
+    int estado2 = digitalRead(led2);
+
+    String resposta = "{\"led1\":" + String(estado1) + ",\"led2\":" + String(estado2) + ",\"dado\":\"Estado atualizado\"}";
+
+    client.println("HTTP/1.1 200 OK");
+    client.println("Content-Type: application/json");
+    client.println("Connection: close");
+    client.println();
+    client.println(resposta);
+    client.stop();
+    Serial.println("GET /api/dados_vespa atendido.");
+  }
+
+  else {
+    String resposta = "{\"erro\":\"rota invalida\",\"rota\":\"" + path + "\"}";
+    client.println("HTTP/1.1 404 Not Found");
+    client.println("Content-Type: application/json");
+    client.println("Connection: close");
+    client.println();
+    client.println(resposta);
+    client.stop();
+    Serial.println("Rota inválida acessada: " + path);
   }
 }

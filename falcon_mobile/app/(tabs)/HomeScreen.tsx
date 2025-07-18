@@ -28,7 +28,7 @@ export default function HomeScreen() {
       }
 
       const resultado = await resposta.json();
-      Alert.alert('Resposta do Blackboard(UNO)', JSON.stringify(resultado, null, 2));
+      Alert.alert('Resposta da ESP32(VESPA))', JSON.stringify(resultado, null, 2));
     } catch (erro) {
       Alert.alert('Erro de comunicação', (erro as Error).message);
     }
@@ -52,7 +52,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.ipText}>Conectando a: {IP_NODEMCU}</Text>
-      <Text style={styles.serialText}>Dado da COM3: {dadoSerial}</Text>
+      <Text style={styles.serialText}>Dado da COM4: {dadoSerial}</Text>
       <View style={{ height: 16 }} />
       <Button title="Ligar LED" onPress={() => enviarComando('ligar')} />
       <View style={{ height: 16 }} />

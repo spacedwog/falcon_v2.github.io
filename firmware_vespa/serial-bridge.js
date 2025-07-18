@@ -8,12 +8,12 @@ const porta = 3000;
 let ultimoDadoSerial = ''; // Armazena o último dado recebido
 
 const serial = new SerialPort({
-  path: 'COM3',
-  baudRate: 9600,
+  path: 'COM4',
+  baudRate: 115200,
 });
 
 serial.on('open', () => {
-  console.log('✅ Conectado à COM3');
+  console.log('✅ Conectado à COM4');
 });
 
 serial.on('data', (data) => {

@@ -15,7 +15,7 @@ export default function ControlScreen() {
     };
 
     try {
-      const resposta = await fetch(`${IP_NODEMCU}/api/comando`, {
+      const resposta = await fetch(`${IP_NODEMCU}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
