@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 
 // Inicialização da porta serial
 const portaSerial = new SerialPort({
-  path: 'COM5',
+  path: 'COM3',
   baudRate: 115200,
   autoOpen: false,
 });
@@ -19,7 +19,7 @@ const portaSerial = new SerialPort({
 // Abrir porta serial
 portaSerial.open((err) => {
   if (err) {
-    return console.error('Erro ao abrir COM5:', err.message);
+    return console.error('Erro ao abrir COM4:', err.message);
   }
   console.log('✅ Porta serial COM5 aberta com sucesso!');
 });
