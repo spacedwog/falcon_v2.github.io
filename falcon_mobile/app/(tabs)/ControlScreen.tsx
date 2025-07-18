@@ -43,21 +43,29 @@ export default function ControlScreen() {
       }
 
       const contentType = resposta.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const texto = await resposta.text();
-        throw new Error(`Resposta inesperada (não-JSON): ${texto}`);
-      }
 
-      const json = await resposta.json();
-      setDadoSerial(json.dado || 'Sem dado');
-    }
-    catch (err) {
+      // Se a resposta for JSON válida
+      if (contentType && contentType.includes('application/json')) {
+        const json = await resposta.json();
+        setDadoSerial(json.dado || 'Sem dado');
+      }
+      // Caso contrário, tratamos como texto ou HTML
+      else {
+        const texto = await resposta.text();
+
+        // Tenta extrair o conteúdo principal do HTML (entre <body> ou tudo mesmo)
+        const htmlMatch = texto.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        const htmlContent = htmlMatch ? htmlMatch[1] : texto;
+
+        setDadoSerial('Conteúdo HTML recebido:\n' + htmlContent.trim());
+      }
+    } catch (err) {
       if (err instanceof Error) {
         setDadoSerial('Erro ao buscar dado: ' + err.message);
       } else {
         setDadoSerial('Erro desconhecido ao buscar dado');
       }
-    }    
+    }
   };
 
   useEffect(() => {

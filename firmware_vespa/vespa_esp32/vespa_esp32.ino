@@ -8,7 +8,7 @@ WiFiServer server(3000);
 
 // Pinos dos LEDs
 const int led1 = 14;  // D2 no NodeMCU
-const int led2 = 27;  // D1 no NodeMCU
+const int led2 = 4;  // D1 no NodeMCU
 
 void setup() {
   Serial.begin(115200);
