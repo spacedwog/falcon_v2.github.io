@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Button, StyleSheet, Text } from 'react-native';
-import { Camera, CameraType } from 'expo-camera';
+import { View, Text, Button, StyleSheet } from 'react-native';
+import { Camera, CameraType } from 'expo-camera'; // ✅ IMPORTAÇÃO CORRETA
 
 export default function CameraScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [type, setType] = useState<CameraType>(CameraType.back);
+  const [type, setType] = useState<CameraType>(CameraType.back); // ✅ USO CORRETO
+  const cameraRef = useRef<Camera | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -13,32 +14,23 @@ export default function CameraScreen() {
     })();
   }, []);
 
-  const toggleCamera = () => {
-    setType((prevType) =>
-      prevType === CameraType.back ? CameraType.front : CameraType.back
-    );
-  };
-
   if (hasPermission === null) {
-    return <Text>Solicitando permissão...</Text>;
+    return <Text>Solicitando permissão da câmera...</Text>;
   }
   if (hasPermission === false) {
-    return <Text>Permissão negada</Text>;
+    return <Text>Permissão negada.</Text>;
   }
 
+  const toggleCameraType = () => {
+    setType((prevType) => (
+      prevType === CameraType.back ? CameraType.front : CameraType.back
+    ));
+  };
+
   return (
-    <View style={styles.container}>
-      <Camera style={styles.camera} type={type} />
-      <Button title="Trocar câmera" onPress={toggleCamera} />
+    <View style={{ flex: 1 }}>
+      <Camera style={{ flex: 1 }} type={type} ref={cameraRef} />
+      <Button title="Alternar Câmera" onPress={toggleCameraType} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  camera: {
-    flex: 1,
-  },
-});
