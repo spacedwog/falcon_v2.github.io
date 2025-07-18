@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 
 const LOCALHOST = 'http://localhost';
 const AVD_IP = 'http://10.0.2.2';
-const LOCAL_IP = 'http://192.168.15.8'; // Substitua pelo seu IP
+const LOCAL_IP = 'http://192.168.15.166'; // Substitua pelo seu IP
 const PORT = 3000;
 
 function isRunningOnPhysicalDevice(): boolean {

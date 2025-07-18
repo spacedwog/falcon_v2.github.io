@@ -1,7 +1,7 @@
 #include <WiFi.h>
 
 // Credenciais da rede (2.4GHz)
-const char* ssid = "FAMILIA SANTOS-5G";  // ⚠️ rede 2.4GHz
+const char* ssid = "FAMILIA SANTOS";  // ⚠️ rede 2.4GHz
 const char* password = "6z2h1j3k9f";
 
 WiFiServer server(3000);

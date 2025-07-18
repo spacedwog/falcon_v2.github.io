@@ -1,55 +1,33 @@
 #include <Wire.h>
 
-// Endereço do dispositivo escravo (ex: VESPA, sensor I2C)
-#define SLAVE_ADDRESS 0x08
-
-String comandoRecebido = "";
-
 void setup() {
-  Serial.begin(115200);
-  Wire.begin();  // Inicia como mestre
-  Serial.println("Controlador Blackboard iniciado.");
+  Wire.begin(0x08); // Endereço I2C do UNO
+  Wire.onReceive(receberDados);
+  Wire.onRequest(enviarDados);
+  Serial.begin(9600);
 }
+
+char comando = ' ';
 
 void loop() {
-  // Verifica se há dados recebidos via Serial
-  if (Serial.available()) {
-    comandoRecebido = Serial.readStringUntil('\n');
-    comandoRecebido.trim();
+  // Exemplo: acionar LED conforme comando
+  if (comando == 'L') {
+    digitalWrite(13, HIGH); // Liga LED
+    Serial.println("LED LIGADO");
+  } else if (comando == 'D') {
+    digitalWrite(13, LOW); // Desliga LED
+    Serial.println("LED DESLIGADO");
+  }
+}
 
+void receberDados(int n) {
+  if (Wire.available()) {
+    comando = Wire.read();
     Serial.print("Comando recebido: ");
-    Serial.println(comandoRecebido);
-
-    enviarParaEscravo(comandoRecebido);
-    delay(100);
-    receberRespostaEscravo();
+    Serial.println(comando);
   }
-
-  delay(200);
 }
 
-// Envia comando para escravo via I2C
-void enviarParaEscravo(String comando) {
-  Wire.beginTransmission(SLAVE_ADDRESS);
-  Wire.write((const uint8_t*)comando.c_str(), comando.length());  // Cast explícito
-  Wire.endTransmission();
-  Serial.println("Comando enviado ao escravo.");
-}
-
-// Lê resposta do escravo via I2C
-void receberRespostaEscravo() {
-  Wire.requestFrom(SLAVE_ADDRESS, 32); // espera até 32 bytes
-
-  String resposta = "";
-  while (Wire.available()) {
-    char c = Wire.read();
-    resposta += c;
-  }
-
-  if (resposta.length() > 0) {
-    Serial.print("Resposta do escravo: ");
-    Serial.println(resposta);
-  } else {
-    Serial.println("Sem resposta do escravo.");
-  }
+void enviarDados() {
+  Wire.write("OK123"); // Resposta de 6 bytes
 }
