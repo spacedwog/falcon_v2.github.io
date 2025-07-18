@@ -18,6 +18,7 @@
     "axios": "^1.10.0",
     "expo": "^53.0.12",
     "expo-blur": "~14.1.5",
+    "expo-camera": "~16.1.11",
     "expo-constants": "~17.1.6",
     "expo-font": "~13.3.1",
     "expo-haptics": "~14.1.4",
@@ -34,7 +35,6 @@
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "^0.79.4",
-    "react-native-camera": "^4.2.1",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
@@ -42,8 +42,7 @@
     "react-native-web": "~0.20.0",
     "react-native-webview": "^13.13.5",
     "react-native-wifi-reborn": "^4.13.5",
-    "serialport": "^13.0.0",
-    "expo-camera": "~16.1.11"
+    "serialport": "^13.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
