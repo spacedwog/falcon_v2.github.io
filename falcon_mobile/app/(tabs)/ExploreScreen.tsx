@@ -1,6 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { 
+  Alert, 
+  StyleSheet, 
+  View, 
+  Text, 
+  ScrollView, 
+  PanResponder, 
+  Animated, 
+  Dimensions 
+} from 'react-native';
 import { getServerIP } from '../../utils/getServerIP';
-import { Alert, Button, StyleSheet, View, Text, ScrollView } from 'react-native';
 
 const IP_NODEMCU = getServerIP();
 
@@ -13,9 +22,85 @@ const fetchWithTimeout = (url: string, options: RequestInit = {}, timeout = 3000
   ]) as Promise<Response>;
 };
 
+const { width } = Dimensions.get('window');
+const stickRadius = 40;
+const baseRadius = 80;
+
+// Componente Joystick customizado
+const Joystick = ({ onMove, onEnd }: {
+  onMove: (event: { x: number; y: number }) => void;
+  onEnd: () => void;
+}) => {
+  const pan = useRef(new Animated.ValueXY()).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (e, gestureState) => {
+        let dx = gestureState.dx;
+        let dy = gestureState.dy;
+
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance > baseRadius) {
+          const angle = Math.atan2(dy, dx);
+          dx = Math.cos(angle) * baseRadius;
+          dy = Math.sin(angle) * baseRadius;
+        }
+
+        pan.setValue({ x: dx, y: dy });
+
+        const normX = dx / baseRadius;
+        const normY = dy / baseRadius;
+        onMove({ x: normX, y: normY });
+      },
+      onPanResponderRelease: () => {
+        Animated.spring(pan, {
+          toValue: { x: 0, y: 0 },
+          useNativeDriver: false,
+        }).start();
+        onEnd();
+      },
+    })
+  ).current;
+
+  return (
+    <View style={joystickStyles.base}>
+      <Animated.View
+        style={[
+          joystickStyles.stick,
+          {
+            transform: [{ translateX: pan.x }, { translateY: pan.y }],
+          },
+        ]}
+        {...panResponder.panHandlers}
+      />
+    </View>
+  );
+};
+
+const joystickStyles = StyleSheet.create({
+  base: {
+    width: baseRadius * 2,
+    height: baseRadius * 2,
+    borderRadius: baseRadius,
+    backgroundColor: 'rgba(100,100,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginVertical: 20,
+  },
+  stick: {
+    width: stickRadius * 2,
+    height: stickRadius * 2,
+    borderRadius: stickRadius,
+    backgroundColor: 'rgba(30,144,255,0.6)',
+    position: 'absolute',
+  },
+});
+
 export default function ExploreScreen() {
   const [dadoSerial, setDadoSerial] = useState<string>('---');
-  const alertaExibido = useRef(false); // <- controle de alerta
+  const alertaExibido = useRef(false);
 
   const enviarComando = async (
     comando: string,
@@ -46,7 +131,6 @@ export default function ExploreScreen() {
 
       const resultado = await resposta.json();
 
-      // Exibe apenas uma vez
       if (!alertaExibido.current) {
         Alert.alert('Resposta da Vespa (ESP32)', JSON.stringify(resultado, null, 2));
         alertaExibido.current = true;
@@ -111,17 +195,22 @@ export default function ExploreScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Controle de Movimento</Text>
-        <Button title="Frente" onPress={() => enviarComando('frente', 100)} />
-        <View style={{ height: 12 }} />
-        <Button title="Trás" onPress={() => enviarComando('tras', 100)} />
-        <View style={{ height: 12 }} />
-        <Button title="Esquerda" onPress={() => enviarComando('esquerda', 100)} />
-        <View style={{ height: 12 }} />
-        <Button title="Direita" onPress={() => enviarComando('direita', 100)} />
-        <View style={{ height: 12 }} />
-        <Button title="Girar (90°)" onPress={() => enviarComando('girar', 60, 90)} />
-        <View style={{ height: 12 }} />
-        <Button title="Parar" onPress={() => enviarComando('parar')} />
+
+        {/* Joystick integrado */}
+        <Joystick
+          onMove={({ x, y }) => {
+            if (Math.abs(x) < 0.2 && Math.abs(y) < 0.2) {
+              enviarComando('parar');
+              return;
+            }
+
+            if (y < -0.5) enviarComando('frente', 100);
+            else if (y > 0.5) enviarComando('tras', 100);
+            else if (x < -0.5) enviarComando('esquerda', 100);
+            else if (x > 0.5) enviarComando('direita', 100);
+          }}
+          onEnd={() => enviarComando('parar')}
+        />
       </View>
     </ScrollView>
   );
