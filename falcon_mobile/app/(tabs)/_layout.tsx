@@ -40,6 +40,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="TecnologiasScreen"
+        options={{
+          title: 'Tech View',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="cpu.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="ExploreScreen"
         options={{
           title: 'Explorar',
