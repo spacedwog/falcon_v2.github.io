@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { getServerIP } from '../../utils/getServerIP';
 import { Alert, StyleSheet, View, Text, ScrollView } from 'react-native';
-import { LineChart, Grid } from 'react-native-svg-charts';
-import * as shape from 'd3-shape';
 
 const IP_NODEMCU = getServerIP();
 
@@ -16,9 +14,8 @@ const fetchWithTimeout = (url: string, options: RequestInit = {}, timeout = 3000
 };
 
 export default function HomeScreen() {
-  const [dados, setDados] = useState<number[]>([]);
-  const [dadoAtual, setDadoAtual] = useState<string>('---');
-  const alertaExibido = useRef(false);
+  const [dadoSerial, setDadoSerial] = useState<string>('---');
+  const alertaExibido = useRef(false); // <- controle de alerta
 
   const buscarDadoSerial = async () => {
     try {
@@ -35,17 +32,7 @@ export default function HomeScreen() {
       }
 
       const json = await resposta.json();
-      const distancia = parseFloat(json?.distancia ?? 'NaN');
-
-      if (!isNaN(distancia)) {
-        setDados((prev) => {
-          const novo = [...prev, distancia];
-          return novo.length > 20 ? novo.slice(novo.length - 20) : novo;
-        });
-        setDadoAtual(distancia.toFixed(2) + ' cm');
-      } else {
-        throw new Error('Valor inválido recebido');
-      }
+      setDadoSerial(JSON.stringify(json, null, 2));
 
     } catch (err) {
       if (!alertaExibido.current) {
@@ -61,7 +48,7 @@ export default function HomeScreen() {
         alertaExibido.current = true;
       }
 
-      setDadoAtual('Erro');
+      setDadoSerial('Erro');
     }
   };
 
@@ -73,20 +60,7 @@ export default function HomeScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.ipText}>Conectando a: {IP_NODEMCU}</Text>
-      <Text style={styles.serialText}>Distância atual: {dadoAtual}</Text>
-
-      <View style={styles.graficoContainer}>
-        <Text style={styles.graficoTitulo}>Gráfico de Distância (últimos 20 valores)</Text>
-        <LineChart
-          style={styles.grafico}
-          data={dados}
-          svg={{ stroke: '#007AFF', strokeWidth: 2 }}
-          contentInset={{ top: 20, bottom: 20 }}
-          curve={shape.curveNatural}
-        >
-          <Grid />
-        </LineChart>
-      </View>
+      <Text style={styles.serialText}>Dado da Vespa: {dadoSerial}</Text>
     </ScrollView>
   );
 }
@@ -108,28 +82,8 @@ const styles = StyleSheet.create({
   serialText: {
     fontSize: 18,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
     fontWeight: 'bold',
     color: '#222',
-  },
-  graficoContainer: {
-    marginTop: 20,
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  graficoTitulo: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  grafico: {
-    height: 200,
-    width: '100%',
   },
 });
