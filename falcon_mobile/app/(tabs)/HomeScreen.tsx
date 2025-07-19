@@ -4,6 +4,7 @@ import { Alert, StyleSheet, View, Text, ScrollView } from 'react-native';
 
 const IP_NODEMCU = getServerIP();
 
+// Função fetch com timeout
 const fetchWithTimeout = (url: string, options: RequestInit = {}, timeout = 3000) => {
   return Promise.race([
     fetch(url, options),
@@ -15,8 +16,9 @@ const fetchWithTimeout = (url: string, options: RequestInit = {}, timeout = 3000
 
 export default function HomeScreen() {
   const [dadoSerial, setDadoSerial] = useState<string>('---');
-  const alertaExibido = useRef(false); // <- controle de alerta
+  const alertaExibido = useRef(false); // Controle para não exibir múltiplos alerts seguidos
 
+  // Função que busca dado do ESP32
   const buscarDadoSerial = async () => {
     try {
       const resposta = await fetchWithTimeout(`${IP_NODEMCU}/api/distancia`, {}, 3000);
@@ -33,6 +35,9 @@ export default function HomeScreen() {
 
       const json = await resposta.json();
       setDadoSerial(JSON.stringify(json, null, 2));
+
+      // Libera exibição de futuros alerts após sucesso
+      alertaExibido.current = false;
 
     } catch (err) {
       if (!alertaExibido.current) {
@@ -52,6 +57,7 @@ export default function HomeScreen() {
     }
   };
 
+  // Executa busca a cada 2 segundos
   useEffect(() => {
     const intervalo = setInterval(buscarDadoSerial, 2000);
     return () => clearInterval(intervalo);
@@ -65,6 +71,7 @@ export default function HomeScreen() {
   );
 }
 
+// Estilos da tela
 const styles = StyleSheet.create({
   container: {
     padding: 24,

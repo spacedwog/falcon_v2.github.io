@@ -5,8 +5,8 @@
 // ========================
 // CONFIGURAÇÃO DO WIFI
 // ========================
-const char* ssid = "FALCON_WIFI";
-const char* password = "12345678";
+const char* ssid = "FAMILIA SANTOS";
+const char* password = "6z2h1j3k9f";
 WiFiServer server(3000);
 
 // ========================
@@ -19,22 +19,27 @@ const int echoPin = 18;
 // OBJETOS
 // ========================
 VespaMotors motors;
-bool sensorAtivo = false;  // Estado do sensor
+bool sensorAtivo = true;  // Estado do sensor
 
 // ========================
 // SETUP
 // ========================
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
-  WiFi.softAP(ssid, password);
-  delay(1000);
-  Serial.println("Wi-Fi local criado (AP)!");
-  Serial.print("IP do AP: ");
-  Serial.println(WiFi.softAPIP());
+  WiFi.begin(ssid, password);
+  Serial.print("Conectando-se ao Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println();
+  Serial.println("Conectado ao Wi-Fi!");
+  Serial.print("IP obtido: ");
+  Serial.println(WiFi.localIP());
 
   server.begin();
 }
