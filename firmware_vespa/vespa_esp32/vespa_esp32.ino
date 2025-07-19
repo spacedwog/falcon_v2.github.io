@@ -1,38 +1,25 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include "RoboCore_Vespa.h"
-#include <BLEDevice.h>
-#include <BLEServer.h>
-#include <BLEUtils.h>
-#include <BLE2902.h>
 
 // ========================
-// CONFIG WIFI
+// CONFIGURAÇÃO DO WIFI
 // ========================
 const char* ssid = "FAMILIA SANTOS";
 const char* password = "6z2h1j3k9f";
 WiFiServer server(3000);
 
 // ========================
-// CONFIG BLE
-// ========================
-#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-#define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
-BLECharacteristic* pCharacteristic;
-bool deviceConnected = false;
-
-class MyServerCallbacks: public BLEServerCallbacks {
-  void onConnect(BLEServer* pServer) { deviceConnected = true; }
-  void onDisconnect(BLEServer* pServer) { deviceConnected = false; }
-};
-
-// ========================
-// HARDWARE
+// PINOS
 // ========================
 const int trigPin = 5;
 const int echoPin = 18;
+
+// ========================
+// OBJETOS
+// ========================
 VespaMotors motors;
-bool sensorAtivo = true;
+bool sensorAtivo = false;  // Estado do sensor
 
 // ========================
 // SETUP
@@ -40,59 +27,30 @@ bool sensorAtivo = true;
 void setup() {
   Serial.begin(115200);
 
-  // --- Pins
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
-  // --- WiFi
   WiFi.begin(ssid, password);
-  Serial.print("Conectando ao Wi-Fi");
+  Serial.print("Conectando-se ao Wi-Fi");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\nWi-Fi conectado!");
-  Serial.print("IP: ");
+  Serial.println();
+  Serial.println("Conectado ao Wi-Fi!");
+  Serial.print("IP obtido: ");
   Serial.println(WiFi.localIP());
+
   server.begin();
-
-  // --- BLE
-  BLEDevice::init("ESP32");
-  BLEServer* pServer = BLEDevice::createServer();
-  pServer->setCallbacks(new MyServerCallbacks());
-  BLEService* pService = pServer->createService(SERVICE_UUID);
-  pCharacteristic = pService->createCharacteristic(
-    CHARACTERISTIC_UUID,
-    BLECharacteristic::PROPERTY_READ |
-    BLECharacteristic::PROPERTY_WRITE
-  );
-  pCharacteristic->setValue("ESP32 conectado via BLE");
-  pService->start();
-  pServer->getAdvertising()->start();
-  Serial.println("Bluetooth iniciado...");
-}
-
-// ========================
-// FUNÇÃO DISTÂNCIA
-// ========================
-float medirDistanciaCM() {
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  long duracao = pulseIn(echoPin, HIGH);
-  return duracao * 0.034 / 2.0;
 }
 
 // ========================
 // LOOP PRINCIPAL
 // ========================
 void loop() {
-  // --- Cliente HTTP
   WiFiClient client = server.available();
   if (client) {
-    Serial.println("📶 Cliente conectado.");
+    Serial.println("Cliente conectado.");
     unsigned long timeout = millis();
     while (client.connected() && !client.available()) {
       if (millis() - timeout > 1000) {
@@ -102,20 +60,27 @@ void loop() {
     }
 
     String req = client.readStringUntil('\r');
-    client.read(); // consome '\n'
+    client.read();  // consome \n
     String method = req.substring(0, req.indexOf(' '));
     String path = req.substring(req.indexOf(' ') + 1, req.indexOf("HTTP") - 1);
-    method.trim(); path.trim();
+    path.trim();
+    method.trim();
 
-    // --- POST com JSON de comando
+    // ================
+    // POST /
+    // ================
     if (method == "POST" && path == "/") {
       while (client.available()) {
         String linha = client.readStringUntil('\n');
         if (linha == "\r" || linha == "") break;
       }
+
       String body = "";
-      while (client.available()) body += char(client.read());
-      Serial.println("📨 JSON recebido:");
+      while (client.available()) {
+        body += char(client.read());
+      }
+
+      Serial.println("JSON recebido:");
       Serial.println(body);
 
       StaticJsonDocument<256> doc;
@@ -126,6 +91,8 @@ void loop() {
         resposta = "{\"erro\":\"JSON inválido\"}";
       } else {
         String comando = doc["comando"] | "";
+        String origem = doc["origem"] | "";
+        String timestamp = doc["timestamp"] | "";
         int valor = doc["valor"] | 100;
         int angulo = doc["angulo"] | 90;
 
@@ -139,19 +106,19 @@ void loop() {
 
         } else if (comando == "frente") {
           motors.backward(valor);
-          resposta = "{\"acao\":\"frente\"}";
+          resposta = "{\"acao\":\"frente\",\"velocidade\":" + String(valor) + "}";
 
         } else if (comando == "tras") {
           motors.forward(valor);
-          resposta = "{\"acao\":\"tras\"}";
+          resposta = "{\"acao\":\"tras\",\"velocidade\":" + String(valor) + "}";
 
         } else if (comando == "esquerda") {
           motors.setSpeedRight(valor);
-          resposta = "{\"acao\":\"esquerda\"}";
+          resposta = "{\"acao\":\"esquerda\",\"velocidade\":" + String(valor) + "}";
 
         } else if (comando == "direita") {
           motors.setSpeedLeft(valor);
-          resposta = "{\"acao\":\"direita\"}";
+          resposta = "{\"acao\":\"direita\",\"velocidade\":" + String(valor) + "}";
 
         } else if (comando == "parar") {
           motors.stop();
@@ -159,10 +126,10 @@ void loop() {
 
         } else if (comando == "girar") {
           motors.turn(angulo, valor);
-          resposta = "{\"acao\":\"girar\"}";
+          resposta = "{\"acao\":\"girar\",\"angulo\":" + String(angulo) + ",\"velocidade\":" + String(valor) + "}";
 
         } else {
-          resposta = "{\"erro\":\"comando desconhecido\"}";
+          resposta = "{\"erro\":\"comando desconhecido\",\"comando\":\"" + comando + "\"}";
         }
       }
 
@@ -172,14 +139,33 @@ void loop() {
       client.println();
       client.println(resposta);
       client.stop();
-      Serial.println("✅ Resposta enviada.");
+      Serial.println("Resposta enviada e cliente desconectado.");
+    }
 
-    // --- GET com medição
-    } else if (method == "GET" && path == "/api/distancia") {
+    // ================
+    // GET /api/distancia
+    // ================
+    else if (method == "GET" && path == "/api/distancia") {
       String resposta;
+
       if (sensorAtivo) {
-        float distancia = medirDistanciaCM();
-        resposta = "{\"distancia_cm\":" + String(distancia, 2) + "}";
+        digitalWrite(trigPin, LOW);
+        delayMicroseconds(2);
+        digitalWrite(trigPin, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(trigPin, LOW);
+
+        long duracao = pulseIn(echoPin, HIGH, 25000);  // timeout de 25 ms (~4.3 m)
+
+        if (duracao == 0) {
+          resposta = "{\"erro\":\"Sem leitura. Fora de alcance ou desconectado.\"}";
+        } else {
+          float distancia = duracao * 0.034 / 2.0;
+          resposta = "{\"distancia_cm\":" + String(distancia, 2) + "}";
+          Serial.print("📏 Distância medida: ");
+          Serial.print(distancia);
+          Serial.println(" cm");
+        }
       } else {
         resposta = "{\"erro\":\"Sensor desligado\"}";
       }
@@ -190,10 +176,13 @@ void loop() {
       client.println();
       client.println(resposta);
       client.stop();
+    }
 
-    // --- Rota inválida
-    } else {
-      String resposta = "{\"erro\":\"rota invalida\"}";
+    // ================
+    // Rota inválida
+    // ================
+    else {
+      String resposta = "{\"erro\":\"rota invalida\",\"rota\":\"" + path + "\"}";
       client.println("HTTP/1.1 404 Not Found");
       client.println("Content-Type: application/json");
       client.println("Connection: close");
@@ -203,17 +192,10 @@ void loop() {
     }
   }
 
-  // --- Serial
+  // 📥 Leitura da serial (opcional)
   if (Serial.available()) {
-    String dado = Serial.readStringUntil('\n');
-    Serial.println("📡 Dado Serial: " + dado);
-  }
-
-  // --- BLE: envia distância se conectado
-  if (deviceConnected && sensorAtivo) {
-    float distancia = medirDistanciaCM();
-    String valor = String(distancia, 2) + " cm";
-    pCharacteristic->setValue(valor.c_str());
-    delay(1000); // evitar sobrecarga
+    String dadoRecebido = Serial.readStringUntil('\n');
+    Serial.println("📡 Dado recebido via Serial:");
+    Serial.println(dadoRecebido);
   }
 }

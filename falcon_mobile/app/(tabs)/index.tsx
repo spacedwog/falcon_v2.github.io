@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, Button, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Button, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 
 export default function Index() {
   const [status, setStatus] = useState('');
   const [distancia, setDistancia] = useState<number | null>(null);
   const [carregando, setCarregando] = useState(false);
 
-  const IP_VESPA = 'http://192.168.4.1:3000';
+  const IP_VESPA = 'http://192.168.15.166:3000'; // IP local em modo AP da Vespa
 
   const enviarComando = async (comando: 'ligar' | 'desligar') => {
     setCarregando(true);
@@ -20,9 +20,12 @@ export default function Index() {
       });
 
       const json = await resposta.json();
-      setStatus(json.status || json.erro || 'Comando enviado');
+      const respostaStatus = json.status || json.erro || 'Comando enviado';
+      setStatus(respostaStatus);
+      Alert.alert('Vespa', respostaStatus);
     } catch (err) {
       setStatus('Erro na conexão');
+      Alert.alert('Erro', 'Não foi possível conectar à Vespa.');
     } finally {
       setCarregando(false);
     }
@@ -57,6 +60,7 @@ export default function Index() {
 
       <View style={styles.buttonGroup}>
         <Button title="Ligar Sensor" onPress={() => enviarComando('ligar')} disabled={carregando} />
+        <View style={{ marginVertical: 10 }} />
         <Button title="Desligar Sensor" onPress={() => enviarComando('desligar')} disabled={carregando} />
         <View style={{ marginVertical: 10 }} />
         <Button title="Ler Distância" onPress={lerDistancia} disabled={carregando} />

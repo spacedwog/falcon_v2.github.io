@@ -1,93 +1,77 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, StyleSheet, View, Text, ScrollView, Button, PermissionsAndroid, Platform } from 'react-native';
-import { BleManager, Device } from 'react-native-ble-plx';
+import { getServerIP } from '../../utils/getServerIP';
+import { Alert, StyleSheet, View, Text, ScrollView } from 'react-native';
 
-const bleManager = new BleManager();
+const IP_NODEMCU = getServerIP();
+
+// Função fetch com timeout
+const fetchWithTimeout = (url: string, options: RequestInit = {}, timeout = 3000) => {
+  return Promise.race([
+    fetch(url, options),
+    new Promise<Response>((_, reject) =>
+      setTimeout(() => reject(new Error('Timeout na requisição')), timeout)
+    )
+  ]) as Promise<Response>;
+};
 
 export default function HomeScreen() {
   const [dadoSerial, setDadoSerial] = useState<string>('---');
-  const [device, setDevice] = useState<Device | null>(null);
-  const alertaExibido = useRef(false);
+  const alertaExibido = useRef(false); // Controle para não exibir múltiplos alerts seguidos
 
-  const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b'; // UUID do seu ESP32
-  const CHARACTERISTIC_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8'; // Característica de leitura/escrita
-
-  // Solicitar permissões Android
-  const requestPermissions = async () => {
-    if (Platform.OS === 'android') {
-      await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-      ]);
-    }
-  };
-
-  // Escanear dispositivos e conectar ao ESP32
-  const conectarESP32 = () => {
-    bleManager.startDeviceScan(null, null, async (error, scannedDevice) => {
-      if (error) {
-        Alert.alert('Erro ao escanear', error.message);
-        return;
-      }
-
-      if (scannedDevice?.name?.includes('ESP32')) {
-        bleManager.stopDeviceScan();
-        try {
-          const d = await scannedDevice.connect();
-          await d.discoverAllServicesAndCharacteristics();
-          setDevice(d);
-          Alert.alert('Conectado a', d.name ?? 'ESP32');
-        } catch (e) {
-          Alert.alert('Erro ao conectar', e instanceof Error ? e.message : 'Desconhecido');
-        }
-      }
-    });
-  };
-
-  // Buscar dado via BLE a cada 2s
+  // Função que busca dado do ESP32
   const buscarDadoSerial = async () => {
-    if (!device) return;
-
     try {
-      const characteristic = await device.readCharacteristicForService(SERVICE_UUID, CHARACTERISTIC_UUID);
-      const valorBase64 = characteristic.value;
-      const decoded = atob(valorBase64 || ''); // Decodifica base64 para string
-      setDadoSerial(decoded.trim());
+      const resposta = await fetchWithTimeout(`${IP_NODEMCU}/api/distancia`, {}, 3000);
+
+      if (!resposta.ok) {
+        throw new Error(`Erro HTTP ${resposta.status} (${resposta.statusText})`);
+      }
+
+      const contentType = resposta.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const texto = await resposta.text();
+        throw new Error(`Resposta inesperada (não-JSON): ${texto}`);
+      }
+
+      const json = await resposta.json();
+      setDadoSerial(JSON.stringify(json, null, 2));
+
+      // Libera exibição de futuros alerts após sucesso
       alertaExibido.current = false;
+
     } catch (err) {
       if (!alertaExibido.current) {
-        Alert.alert('Erro ao ler dado via Bluetooth', err instanceof Error ? err.message : 'Erro desconhecido');
+        if (err instanceof Error) {
+          if (err.message.includes('Timeout')) {
+            Alert.alert('Erro de conexão', 'Tempo de requisição esgotado. Verifique a conexão com o ESP32.');
+          } else {
+            Alert.alert('Erro ao buscar dado', err.message);
+          }
+        } else {
+          Alert.alert('Erro desconhecido ao buscar dado');
+        }
         alertaExibido.current = true;
       }
+
       setDadoSerial('Erro');
     }
   };
 
+  // Executa busca a cada 2 segundos
   useEffect(() => {
-    requestPermissions();
-    return () => {
-      bleManager.destroy();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!device) return;
     const intervalo = setInterval(buscarDadoSerial, 2000);
     return () => clearInterval(intervalo);
-  }, [device]);
+  }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.ipText}>
-        {device ? `Conectado a: ${device.name}` : 'Bluetooth não conectado'}
-      </Text>
-      <Text style={styles.serialText}>Dado da Vespa (BLE): {dadoSerial}</Text>
-      <Button title="Conectar ao ESP32 via Bluetooth" onPress={conectarESP32} />
+      <Text style={styles.ipText}>Conectando a: {IP_NODEMCU}</Text>
+      <Text style={styles.serialText}>Dado da Vespa: {dadoSerial}</Text>
     </ScrollView>
   );
 }
 
+// Estilos da tela
 const styles = StyleSheet.create({
   container: {
     padding: 24,
@@ -105,7 +89,7 @@ const styles = StyleSheet.create({
   serialText: {
     fontSize: 18,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
     fontWeight: 'bold',
     color: '#222',
   },
