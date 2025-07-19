@@ -1,26 +1,33 @@
 {
   "expo": {
-    "name": "falcon_mobile",
-    "slug": "Falcon Mobile",
+    "name": "Falcon Mobile",
+    "slug": "falcon-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "falconmobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "sdkVersion": "50.0.0",
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.spacedwog.falconmobile",
       "infoPlist": {
-        "NSCameraUsageDescription": "Este app precisa acessar a câmera para mostrar o vídeo ao vivo"
+        "NSCameraUsageDescription": "Este app precisa acessar a câmera para mostrar o vídeo ao vivo",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
+      "edgeToEdgeEnabled": true,
+      "package": "com.spacedwog.falconmobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.FalconMobile"
+      }
     },
     "web": {
       "bundler": "metro",
@@ -41,6 +48,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "adcce4c3-b878-4f01-a6cf-0fca811ad2d4"
+      }
+    },
+    "owner": "spacedwog"
   }
 }
