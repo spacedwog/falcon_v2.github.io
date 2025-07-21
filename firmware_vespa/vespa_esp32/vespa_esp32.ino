@@ -3,10 +3,10 @@
 #include "RoboCore_Vespa.h"
 
 // ========================
-// CONFIGURAÇÃO DO WIFI
+// CONFIGURAÇÃO DO WIFI AP
 // ========================
-const char* ssid = "FAMILIA SANTOS";
-const char* password = "6z2h1j3k9f";
+const char* ssid_ap = "Falcon WiFi";
+const char* password_ap = "12345678";  // mínimo 8 caracteres
 WiFiServer server(3000);
 
 // ========================
@@ -19,7 +19,7 @@ const int echoPin = 18;
 // OBJETOS
 // ========================
 VespaMotors motors;
-bool sensorAtivo = false;  // Estado do sensor
+bool sensorAtivo = false;
 
 // ========================
 // SETUP
@@ -30,16 +30,13 @@ void setup() {
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
-  WiFi.begin(ssid, password);
-  Serial.print("Conectando-se ao Wi-Fi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println();
-  Serial.println("Conectado ao Wi-Fi!");
-  Serial.print("IP obtido: ");
-  Serial.println(WiFi.localIP());
+  // Inicia o Wi-Fi em modo AP
+  Serial.println("Iniciando ponto de acesso...");
+  WiFi.softAP(ssid_ap, password_ap);
+
+  IPAddress IP = WiFi.softAPIP();
+  Serial.print("AP iniciado. IP: ");
+  Serial.println(IP);
 
   server.begin();
 }
