@@ -1,10 +1,23 @@
-// TecnologiasScreen.tsx
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+} from 'react-native';
 
-const ESP32_IP = "http://192.168.4.1:3000"; // atualize com o IP real do ESP32
+type Comando = {
+  titulo: string;
+  comando: string;
+  angulo?: number;
+  valor?: number;
+};
 
-const comandosPorCategoria = {
+const ESP32_IP = "http://192.168.4.1:3000"; // Atualize com o IP do seu ESP32
+
+const comandosPorCategoria: Record<string, Comando[]> = {
   frontend: [
     { titulo: "Iniciar UI", comando: "ligar" },
     { titulo: "Parar UI", comando: "desligar" },
@@ -24,22 +37,37 @@ const comandosPorCategoria = {
   ],
 };
 
-const TecnologiasScreen = () => {
-  const [resposta, setResposta] = useState("");
+// Função opcional para exportar resposta JSON como XML (string)
+const jsonToXml = (json: any): string => {
+  let xml = "<resposta>";
+  for (const key in json) {
+    xml += `<${key}>${json[key]}</${key}>`;
+  }
+  xml += "</resposta>";
+  return xml;
+};
 
-  const enviarComando = async (comando: string, extra: any = {}) => {
+const TecnologiasScreen = () => {
+  const [resposta, setResposta] = useState<string>("");
+
+  const enviarComando = async (comando: string, extra: Partial<Comando> = {}) => {
     try {
       if (comando === "distancia") {
         const res = await fetch(`${ESP32_IP}/api/distancia`);
         const json = await res.json();
         setResposta(JSON.stringify(json, null, 2));
+
+        // Exemplo de conversão para XML (opcional)
+        // const xml = jsonToXml(json);
+        // console.log(xml);
+
       } else {
         const body = {
           comando,
           origem: "mobile",
           timestamp: new Date().toISOString(),
-          valor: extra.valor || 150,
-          angulo: extra.angulo || 0,
+          valor: extra.valor ?? 150,
+          angulo: extra.angulo ?? 0,
         };
 
         const res = await fetch(`${ESP32_IP}/`, {
@@ -56,7 +84,7 @@ const TecnologiasScreen = () => {
     }
   };
 
-  const renderCategoria = (titulo: string, comandos: any[]) => (
+  const renderCategoria = (titulo: string, comandos: Comando[]) => (
     <View key={titulo} style={styles.card}>
       <Text style={styles.titulo}>{titulo.toUpperCase()}</Text>
       {comandos.map((btn, idx) => (
@@ -73,12 +101,14 @@ const TecnologiasScreen = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {Object.entries(comandosPorCategoria).map(([cat, comandos]) =>
-        renderCategoria(cat, comandos)
+      {Object.entries(comandosPorCategoria).map(([categoria, comandos]) =>
+        renderCategoria(categoria, comandos)
       )}
       <View style={styles.respostaContainer}>
         <Text style={styles.respostaTitulo}>📡 Resposta:</Text>
-        <Text style={styles.respostaTexto}>{resposta || "Nenhum comando enviado ainda."}</Text>
+        <Text style={styles.respostaTexto}>
+          {resposta || "Nenhum comando enviado ainda."}
+        </Text>
       </View>
     </ScrollView>
   );
