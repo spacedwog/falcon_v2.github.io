@@ -47,6 +47,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="DataSciencesScreen"
+        options={{
+          title: 'Data View',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="cpu.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="ExploreScreen"
         options={{
           title: 'Explorar',
