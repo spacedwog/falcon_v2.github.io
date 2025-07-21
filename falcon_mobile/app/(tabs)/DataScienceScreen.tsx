@@ -9,6 +9,7 @@ const FALCON_WIFI = getServerIP();
 export default function DataScienceScreen() {
   const [valores, setValores] = useState<number[]>([]);
   const [timestamps, setTimestamps] = useState<string[]>([]);
+  const [erroExibido, setErroExibido] = useState(false); // <- novo estado
 
   const buscarDados = async () => {
     try {
@@ -17,8 +18,12 @@ export default function DataScienceScreen() {
       const json = await res.json();
       setValores(json.valores || []);
       setTimestamps(json.timestamps || []);
+      setErroExibido(false); // resetar quando a requisição funcionar
     } catch (err) {
-      Alert.alert('Erro', err instanceof Error ? err.message : 'Erro desconhecido');
+      if (!erroExibido) {
+        Alert.alert('Erro', err instanceof Error ? err.message : 'Erro desconhecido');
+        setErroExibido(true);
+      }
     }
   };
 

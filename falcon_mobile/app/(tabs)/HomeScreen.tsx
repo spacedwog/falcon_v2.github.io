@@ -41,7 +41,7 @@ export default function HomeScreen() {
         const json = await resposta.json();
         if (isMounted) {
           setDadoSerial(JSON.stringify(json, null, 2));
-          alertaExibido.current = false;
+          alertaExibido.current = false; // reset após sucesso
         }
       } catch (err) {
         if (isMounted && !alertaExibido.current) {

@@ -98,7 +98,8 @@ const joystickStyles = StyleSheet.create({
 
 export default function ExploreScreen() {
   const [dadoSerial, setDadoSerial] = useState<string>('---');
-  const alertaExibido = useRef(false);
+  const alertaEnvioExibido = useRef(false);
+  const alertaLeituraExibido = useRef(false);
 
   const enviarComando = async (
     comando: string,
@@ -129,19 +130,21 @@ export default function ExploreScreen() {
 
       const resultado = await resposta.json();
 
-      if (!alertaExibido.current) {
+      if (!alertaEnvioExibido.current) {
         Alert.alert('Resposta da Vespa (ESP32)', JSON.stringify(resultado, null, 2));
-        alertaExibido.current = true;
+        alertaEnvioExibido.current = true;
       }
 
+      alertaEnvioExibido.current = false; // Resetar alerta após sucesso
+
     } catch (erro) {
-      if (!alertaExibido.current) {
+      if (!alertaEnvioExibido.current) {
         if (erro instanceof Error && erro.message.includes('Timeout')) {
           Alert.alert('Erro de conexão', 'Tempo de requisição esgotado. Verifique a conexão com o ESP32.');
         } else {
           Alert.alert('Erro de comunicação', (erro as Error).message);
         }
-        alertaExibido.current = true;
+        alertaEnvioExibido.current = true;
       }
     }
   };
@@ -162,9 +165,10 @@ export default function ExploreScreen() {
 
       const json = await resposta.json();
       setDadoSerial(JSON.stringify(json, null, 2));
+      alertaLeituraExibido.current = false; // Resetar após sucesso
 
     } catch (err) {
-      if (!alertaExibido.current) {
+      if (!alertaLeituraExibido.current) {
         if (err instanceof Error) {
           if (err.message.includes('Timeout')) {
             Alert.alert('Erro de conexão', 'Tempo de requisição esgotado. Verifique a conexão com o ESP32.');
@@ -174,7 +178,7 @@ export default function ExploreScreen() {
         } else {
           Alert.alert('Erro desconhecido ao buscar dado');
         }
-        alertaExibido.current = true;
+        alertaLeituraExibido.current = true;
       }
 
       setDadoSerial('Erro');
