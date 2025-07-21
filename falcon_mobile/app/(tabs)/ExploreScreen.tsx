@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { 
-  Alert, 
-  StyleSheet, 
-  View, 
-  Text, 
-  ScrollView, 
-  PanResponder, 
-  Animated, 
-  Dimensions 
+import {
+  Alert,
+  StyleSheet,
+  View,
+  Text,
+  PanResponder,
+  Animated,
+  Dimensions
 } from 'react-native';
 import { getServerIP } from '../../utils/getServerIP';
 
@@ -26,7 +25,6 @@ const { width } = Dimensions.get('window');
 const stickRadius = 40;
 const baseRadius = 80;
 
-// Componente Joystick customizado
 const Joystick = ({ onMove, onEnd }: {
   onMove: (event: { x: number; y: number }) => void;
   onEnd: () => void;
@@ -189,14 +187,13 @@ export default function ExploreScreen() {
   }, []);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.ipText}>Conectando a: {IP_NODEMCU}</Text>
       <Text style={styles.serialText}>Dado da Vespa: {dadoSerial}</Text>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Controle de Movimento</Text>
 
-        {/* Joystick integrado */}
         <Joystick
           onMove={({ x, y }) => {
             if (Math.abs(x) < 0.2 && Math.abs(y) < 0.2) {
@@ -212,7 +209,7 @@ export default function ExploreScreen() {
           onEnd={() => enviarComando('parar')}
         />
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -221,7 +218,7 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingBottom: 80,
     backgroundColor: '#F0F8FF',
-    flexGrow: 1,
+    flex: 1,
     justifyContent: 'center',
   },
   ipText: {
