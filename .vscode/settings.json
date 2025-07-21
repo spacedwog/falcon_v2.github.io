@@ -77,6 +77,7 @@
         "correta",
         "correto",
         "Credenciais",
+        "cria",
         "criado",
         "customizado",
         "cyle",
@@ -162,6 +163,7 @@
         "Horário",
         "Ignora",
         "Implementação",
+        "implementaria",
         "Importa",
         "importe",
         "incluído",
@@ -201,6 +203,7 @@
         "manualmente",
         "máquina",
         "medida",
+        "medir",
         "membro",
         "membros",
         "mensagem",
@@ -286,6 +289,8 @@
         "separada",
         "seriais",
         "servidor",
+        "simulação",
+        "simularia",
         "sinal",
         "sobre",
         "sobrecarga",
@@ -323,7 +328,8 @@
         "Verifique",
         "vespa",
         "vídeo",
-        "vindo"
+        "vindo",
+        "você"
     ],
     "python.pythonPath": ".venv\\Scripts\\python.exe"
 }
