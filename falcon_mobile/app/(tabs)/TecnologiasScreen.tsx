@@ -5,14 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  ScrollView,
   FlatList,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import i18n from '../../src/config/i18n'; // i18n configuration file
 
 type Comando = {
   titulo: string;
@@ -51,6 +49,11 @@ const jsonToXml = (json: any): string => {
   xml += '</resposta>';
   return xml;
 };
+
+type ListItem =
+  | { type: 'categoria'; titulo: string; comandos: Comando[] }
+  | { type: 'resposta' }
+  | { type: 'historico' };
 
 const TecnologiasScreen = () => {
   const [resposta, setResposta] = useState('');
@@ -97,60 +100,97 @@ const TecnologiasScreen = () => {
         salvarHistorico(comando);
       }
     } catch (err) {
-      Alert.alert(i18n.t('erro'), i18n.t('falha_comando'));
+      Alert.alert('Erro', 'Falha ao enviar comando');
     }
   };
 
   const exportarArquivo = async (formato: 'json' | 'xml') => {
+    if (!resposta) return;
     const conteudo = formato === 'json' ? resposta : jsonToXml(JSON.parse(resposta));
     const path = `${FileSystem.documentDirectory}resposta.${formato}`;
     await FileSystem.writeAsStringAsync(path, conteudo);
     await Sharing.shareAsync(path);
   };
 
-  const renderCategoria = (titulo: string, comandos: Comando[]) => (
-    <Animated.View key={titulo} style={styles.card} entering={FadeInDown.duration(500)}>
-      <Text style={styles.titulo}>{titulo.toUpperCase()}</Text>
-      {comandos.map((btn, idx) => (
-        <TouchableOpacity
-          key={idx}
-          style={styles.botao}
-          onPress={() => enviarComando(btn.comando, btn)}>
-          <Text style={styles.botaoTexto}>{btn.titulo}</Text>
-        </TouchableOpacity>
-      ))}
-    </Animated.View>
-  );
+  // Construir dados da lista: categorias + resposta + histórico
+  const data: ListItem[] = [
+    ...Object.entries(comandosPorCategoria).map(([titulo, comandos]) => ({
+      type: "categoria" as const,
+      titulo,
+      comandos,
+    })),
+    { type: 'resposta' },
+    { type: 'historico' },
+  ];
+
+  const renderItem = ({ item }: { item: ListItem }) => {
+    if (item.type === 'categoria') {
+      return (
+        <Animated.View
+          key={item.titulo}
+          style={styles.card}
+          entering={FadeInDown.duration(500)}
+        >
+          <Text style={styles.titulo}>{item.titulo.toUpperCase()}</Text>
+          {item.comandos.map((btn, idx) => (
+            <TouchableOpacity
+              key={idx}
+              style={styles.botao}
+              onPress={() => enviarComando(btn.comando, btn)}
+            >
+              <Text style={styles.botaoTexto}>{btn.titulo}</Text>
+            </TouchableOpacity>
+          ))}
+        </Animated.View>
+      );
+    }
+
+    if (item.type === 'resposta') {
+      return (
+        <View style={styles.respostaContainer}>
+          <Text style={styles.respostaTitulo}>📡 Resposta:</Text>
+          <Text style={styles.respostaTexto}>
+            {resposta || 'Nenhum comando enviado ainda.'}
+          </Text>
+
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 }}
+          >
+            <TouchableOpacity onPress={() => exportarArquivo('json')} style={styles.botaoExportar}>
+              <Text style={styles.botaoTexto}>Exportar JSON</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => exportarArquivo('xml')} style={styles.botaoExportar}>
+              <Text style={styles.botaoTexto}>Exportar XML</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+
+    if (item.type === 'historico') {
+      return (
+        <View style={styles.historicoContainer}>
+          <Text style={styles.titulo}>🕓 Histórico</Text>
+          <FlatList
+            data={historico}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => <Text style={styles.historicoItem}>• {item}</Text>}
+            scrollEnabled={false} // IMPORTANTE: desabilitar scroll interno para evitar conflito
+          />
+        </View>
+      );
+    }
+
+    return null;
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {Object.entries(comandosPorCategoria).map(([cat, comandos]) =>
-        renderCategoria(cat, comandos)
-      )}
-
-      <View style={styles.respostaContainer}>
-        <Text style={styles.respostaTitulo}>📡 {i18n.t('resposta')}:</Text>
-        <Text style={styles.respostaTexto}>{resposta || i18n.t('nenhum_comando')}</Text>
-
-        <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 }}>
-          <TouchableOpacity onPress={() => exportarArquivo('json')} style={styles.botaoExportar}>
-            <Text style={styles.botaoTexto}>Exportar JSON</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => exportarArquivo('xml')} style={styles.botaoExportar}>
-            <Text style={styles.botaoTexto}>Exportar XML</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.historicoContainer}>
-        <Text style={styles.titulo}>🕓 Histórico</Text>
-        <FlatList
-          data={historico}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => <Text style={styles.historicoItem}>• {item}</Text>}
-        />
-      </View>
-    </ScrollView>
+    <FlatList
+      data={data}
+      keyExtractor={(item, index) => item.type + index}
+      renderItem={renderItem}
+      contentContainerStyle={styles.container}
+    />
   );
 };
 

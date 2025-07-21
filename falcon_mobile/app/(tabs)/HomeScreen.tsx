@@ -1,66 +1,72 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { getServerIP } from '../../utils/getServerIP';
-import { Alert, StyleSheet, View, Text, ScrollView } from 'react-native';
+import { Alert, StyleSheet, ScrollView, Text } from 'react-native';
 
 const FALCON_WIFI = getServerIP();
 
-// Função fetch com timeout
-const fetchWithTimeout = (url: string, options: RequestInit = {}, timeout = 3000) => {
-  return Promise.race([
-    fetch(url, options),
-    new Promise<Response>((_, reject) =>
-      setTimeout(() => reject(new Error('Timeout na requisição')), timeout)
-    )
-  ]) as Promise<Response>;
+const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeout = 3000) => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(id);
+    return response;
+  } catch (e) {
+    clearTimeout(id);
+    throw e;
+  }
 };
 
 export default function HomeScreen() {
   const [dadoSerial, setDadoSerial] = useState<string>('---');
-  const alertaExibido = useRef(false); // Controle para não exibir múltiplos alerts seguidos
+  const alertaExibido = useRef(false);
 
-  // Função que busca dado do ESP32
-  const buscarDadoSerial = async () => {
-    try {
-      const resposta = await fetchWithTimeout(`${FALCON_WIFI}/api/distancia`, {}, 3000);
-
-      if (!resposta.ok) {
-        throw new Error(`Erro HTTP ${resposta.status} (${resposta.statusText})`);
-      }
-
-      const contentType = resposta.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const texto = await resposta.text();
-        throw new Error(`Resposta inesperada (não-JSON): ${texto}`);
-      }
-
-      const json = await resposta.json();
-      setDadoSerial(JSON.stringify(json, null, 2));
-
-      // Libera exibição de futuros alerts após sucesso
-      alertaExibido.current = false;
-
-    } catch (err) {
-      if (!alertaExibido.current) {
-        if (err instanceof Error) {
-          if (err.message.includes('Timeout')) {
-            Alert.alert('Erro de conexão', 'Tempo de requisição esgotado. Verifique a conexão com o ESP32.');
-          } else {
-            Alert.alert('Erro ao buscar dado', err.message);
-          }
-        } else {
-          Alert.alert('Erro desconhecido ao buscar dado');
-        }
-        alertaExibido.current = true;
-      }
-
-      setDadoSerial('Erro');
-    }
-  };
-
-  // Executa busca a cada 2 segundos
   useEffect(() => {
+    let isMounted = true;
+
+    const buscarDadoSerial = async () => {
+      try {
+        const resposta = await fetchWithTimeout(`${FALCON_WIFI}/api/distancia`, {}, 3000);
+
+        if (!resposta.ok) {
+          throw new Error(`Erro HTTP ${resposta.status} (${resposta.statusText})`);
+        }
+
+        const contentType = resposta.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const texto = await resposta.text();
+          throw new Error(`Resposta inesperada (não-JSON): ${texto}`);
+        }
+
+        const json = await resposta.json();
+        if (isMounted) {
+          setDadoSerial(JSON.stringify(json, null, 2));
+          alertaExibido.current = false;
+        }
+      } catch (err) {
+        if (isMounted && !alertaExibido.current) {
+          if (err instanceof Error) {
+            if (err.name === 'AbortError' || err.message.includes('Timeout')) {
+              Alert.alert('Erro de conexão', 'Tempo de requisição esgotado. Verifique a conexão com o ESP32.');
+            } else {
+              Alert.alert('Erro ao buscar dado', err.message);
+            }
+          } else {
+            Alert.alert('Erro desconhecido ao buscar dado');
+          }
+          alertaExibido.current = true;
+          setDadoSerial('Erro');
+        }
+      }
+    };
+
+    buscarDadoSerial();
     const intervalo = setInterval(buscarDadoSerial, 2000);
-    return () => clearInterval(intervalo);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalo);
+    };
   }, []);
 
   return (
@@ -71,7 +77,6 @@ export default function HomeScreen() {
   );
 }
 
-// Estilos da tela
 const styles = StyleSheet.create({
   container: {
     padding: 24,
