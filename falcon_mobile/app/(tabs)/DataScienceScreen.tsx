@@ -1,36 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  Button,
-  StyleSheet,
-  ScrollView,
-  Alert
-} from 'react-native';
-import { LineChart, Grid } from 'react-native-svg-charts';
-import * as shape from 'd3-shape';
+import { View, Text, StyleSheet, ScrollView, Dimensions, Alert } from 'react-native';
+import { LineChart } from 'react-native-chart-kit';
 import { getServerIP } from '../../utils/getServerIP';
 
+const screenWidth = Dimensions.get('window').width;
 const FALCON_WIFI = getServerIP();
 
 export default function DataScienceScreen() {
-  const [dados, setDados] = useState<number[]>([]);
-  const [timestamp, setTimestamp] = useState<string[]>([]);
+  const [valores, setValores] = useState<number[]>([]);
+  const [timestamps, setTimestamps] = useState<string[]>([]);
 
   const buscarDados = async () => {
     try {
-      const resposta = await fetch(`${FALCON_WIFI}/api/data-science`);
-      if (!resposta.ok) {
-        throw new Error(`Erro HTTP ${resposta.status}`);
-      }
-
-      const json = await resposta.json();
-
-      // Exemplo de formato esperado: { valores: [10, 20, 30], timestamps: ["12:00", "12:01", "12:02"] }
-      setDados(json.valores || []);
-      setTimestamp(json.timestamps || []);
+      const res = await fetch(`${FALCON_WIFI}/api/data-science`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      setValores(json.valores || []);
+      setTimestamps(json.timestamps || []);
     } catch (err) {
-      Alert.alert('Erro ao buscar dados', err instanceof Error ? err.message : 'Erro desconhecido');
+      Alert.alert('Erro', err instanceof Error ? err.message : 'Erro desconhecido');
     }
   };
 
@@ -42,27 +30,31 @@ export default function DataScienceScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Análise de Dados (ESP32)</Text>
+      <Text style={styles.title}>📊 Análise de Dados - Falcon</Text>
 
-      <LineChart
-        style={{ height: 200, width: '100%' }}
-        data={dados}
-        svg={{ stroke: '#007AFF' }}
-        contentInset={{ top: 20, bottom: 20 }}
-        curve={shape.curveNatural}
-      >
-        <Grid />
-      </LineChart>
-
-      <View style={styles.labelContainer}>
-        {timestamp.map((label, index) => (
-          <Text key={index} style={styles.label}>
-            {label}
-          </Text>
-        ))}
-      </View>
-
-      <Button title="Atualizar Dados" onPress={buscarDados} color="#1E90FF" />
+      {valores.length > 0 ? (
+        <LineChart
+          data={{
+            labels: timestamps,
+            datasets: [{ data: valores }],
+          }}
+          width={screenWidth - 40}
+          height={220}
+          yAxisSuffix="u"
+          chartConfig={{
+            backgroundColor: '#f0f8ff',
+            backgroundGradientFrom: '#e6f2ff',
+            backgroundGradientTo: '#cce6ff',
+            decimalPlaces: 2,
+            color: (opacity = 1) => `rgba(30, 144, 255, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            style: { borderRadius: 16 },
+          }}
+          style={{ borderRadius: 16, marginVertical: 10 }}
+        />
+      ) : (
+        <Text style={{ color: '#888', marginTop: 20 }}>Aguardando dados do ESP32...</Text>
+      )}
     </ScrollView>
   );
 }
@@ -70,9 +62,10 @@ export default function DataScienceScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    alignItems: 'center',
+    paddingBottom: 80,
     backgroundColor: '#F0F8FF',
     flexGrow: 1,
+    alignItems: 'center',
   },
   title: {
     fontSize: 22,
@@ -80,16 +73,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
-  },
-  labelContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginVertical: 12,
-  },
-  label: {
-    fontSize: 12,
-    marginHorizontal: 4,
-    color: '#666',
   },
 });

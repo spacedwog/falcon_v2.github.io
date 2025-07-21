@@ -174,6 +174,35 @@ void loop() {
       client.println(resposta);
       client.stop();
     }
+    
+    // ================
+    // GET /api/data-science
+    // ================
+    else if (method == "GET" && path == "/api/data-science") {
+      // Simulação de dados temporais
+      const int n = 6;
+      int valores[n] = {15, 20, 22, 25, 23, 21};
+      const char* timestamps[n] = {"12:00", "12:01", "12:02", "12:03", "12:04", "12:05"};
+    
+      StaticJsonDocument<512> doc;
+      JsonArray v = doc.createNestedArray("valores");
+      JsonArray t = doc.createNestedArray("timestamps");
+    
+      for (int i = 0; i < n; i++) {
+        v.add(valores[i]);
+        t.add(timestamps[i]);
+      }
+    
+      String resposta;
+      serializeJson(doc, resposta);
+    
+      client.println("HTTP/1.1 200 OK");
+      client.println("Content-Type: application/json");
+      client.println("Connection: close");
+      client.println();
+      client.println(resposta);
+      client.stop();
+    }
 
     // ================
     // Rota inválida
