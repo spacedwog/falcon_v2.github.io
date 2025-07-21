@@ -98,8 +98,16 @@ const joystickStyles = StyleSheet.create({
 
 export default function ExploreScreen() {
   const [dadoSerial, setDadoSerial] = useState<string>('---');
-  const alertaEnvioExibido = useRef(false);
+  const [respostaVespa, setRespostaVespa] = useState<string>('---');
   const alertaLeituraExibido = useRef(false);
+  const alertaErroEnvioExibido = useRef(false);
+
+  const showAlertOnce = (flagRef: React.MutableRefObject<boolean>, title: string, message: string) => {
+    if (!flagRef.current) {
+      Alert.alert(title, message);
+      flagRef.current = true;
+    }
+  };
 
   const enviarComando = async (
     comando: string,
@@ -130,22 +138,17 @@ export default function ExploreScreen() {
 
       const resultado = await resposta.json();
 
-      if (!alertaEnvioExibido.current) {
-        Alert.alert('Resposta da Vespa (ESP32)', JSON.stringify(resultado, null, 2));
-        alertaEnvioExibido.current = true;
-      }
-
-      alertaEnvioExibido.current = false; // Resetar alerta após sucesso
+      // Atualiza campo com resposta da Vespa (sem alerta)
+      setRespostaVespa(JSON.stringify(resultado, null, 2));
+      alertaErroEnvioExibido.current = false; // Resetar flag de erro para próxima possível falha
 
     } catch (erro) {
-      if (!alertaEnvioExibido.current) {
-        if (erro instanceof Error && erro.message.includes('Timeout')) {
-          Alert.alert('Erro de conexão', 'Tempo de requisição esgotado. Verifique a conexão com o ESP32.');
-        } else {
-          Alert.alert('Erro de comunicação', (erro as Error).message);
-        }
-        alertaEnvioExibido.current = true;
+      if (erro instanceof Error && erro.message.includes('Timeout')) {
+        showAlertOnce(alertaErroEnvioExibido, 'Erro de conexão', 'Tempo de requisição esgotado. Verifique a conexão com o ESP32.');
+      } else {
+        showAlertOnce(alertaErroEnvioExibido, 'Erro de comunicação', (erro as Error).message);
       }
+      setRespostaVespa('Erro');
     }
   };
 
@@ -165,22 +168,18 @@ export default function ExploreScreen() {
 
       const json = await resposta.json();
       setDadoSerial(JSON.stringify(json, null, 2));
-      alertaLeituraExibido.current = false; // Resetar após sucesso
+      alertaLeituraExibido.current = false; // Resetar flag após sucesso
 
     } catch (err) {
-      if (!alertaLeituraExibido.current) {
-        if (err instanceof Error) {
-          if (err.message.includes('Timeout')) {
-            Alert.alert('Erro de conexão', 'Tempo de requisição esgotado. Verifique a conexão com o ESP32.');
-          } else {
-            Alert.alert('Erro ao buscar dado', err.message);
-          }
+      if (err instanceof Error) {
+        if (err.message.includes('Timeout')) {
+          showAlertOnce(alertaLeituraExibido, 'Erro de conexão', 'Tempo de requisição esgotado. Verifique a conexão com o ESP32.');
         } else {
-          Alert.alert('Erro desconhecido ao buscar dado');
+          showAlertOnce(alertaLeituraExibido, 'Erro ao buscar dado', err.message);
         }
-        alertaLeituraExibido.current = true;
+      } else {
+        showAlertOnce(alertaLeituraExibido, 'Erro desconhecido ao buscar dado', '');
       }
-
       setDadoSerial('Erro');
     }
   };
@@ -193,7 +192,9 @@ export default function ExploreScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.ipText}>Conectando a: {FALCON_WIFI}</Text>
+
       <Text style={styles.serialText}>Dado da Vespa: {dadoSerial}</Text>
+      <Text style={styles.responseText}>Resposta da Vespa: {respostaVespa}</Text>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Controle de Movimento</Text>
@@ -237,6 +238,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontWeight: 'bold',
     color: '#222',
+  },
+  responseText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 15,
+    fontWeight: '600',
+    color: '#444',
   },
   section: {
     marginTop: 32,
