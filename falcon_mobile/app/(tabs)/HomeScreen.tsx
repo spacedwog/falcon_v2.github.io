@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { getServerIP } from '../../utils/getServerIP';
 import { Alert, StyleSheet, View, Text, ScrollView } from 'react-native';
 
-const IP_NODEMCU = getServerIP();
+const FALCON_WIFI = getServerIP();
 
 // Função fetch com timeout
 const fetchWithTimeout = (url: string, options: RequestInit = {}, timeout = 3000) => {
@@ -21,7 +21,7 @@ export default function HomeScreen() {
   // Função que busca dado do ESP32
   const buscarDadoSerial = async () => {
     try {
-      const resposta = await fetchWithTimeout(`${IP_NODEMCU}/api/distancia`, {}, 3000);
+      const resposta = await fetchWithTimeout(`${FALCON_WIFI}/api/distancia`, {}, 3000);
 
       if (!resposta.ok) {
         throw new Error(`Erro HTTP ${resposta.status} (${resposta.statusText})`);
@@ -65,7 +65,7 @@ export default function HomeScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.ipText}>Conectando a: {IP_NODEMCU}</Text>
+      <Text style={styles.ipText}>Conectando a: {FALCON_WIFI}</Text>
       <Text style={styles.serialText}>Dado da Vespa: {dadoSerial}</Text>
     </ScrollView>
   );

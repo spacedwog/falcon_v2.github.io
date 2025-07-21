@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 
 const LOCALHOST = 'http://localhost';
 const AVD_IP = 'http://10.0.2.2';
-const LOCAL_IP = 'http://192.168.15.166'; // <- IP padrão do ESP32 em modo Access Point
+const LOCAL_IP = 'http://192.168.4.1'; // <- IP padrão do ESP32 em modo Access Point
 const PORT = 3000;
 
 function isRunningOnPhysicalDevice(): boolean {

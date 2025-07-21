@@ -6,7 +6,7 @@ export default function Index() {
   const [distancia, setDistancia] = useState<number | null>(null);
   const [carregando, setCarregando] = useState(false);
 
-  const IP_VESPA = 'http://192.168.15.166:3000'; // IP local em modo AP da Vespa
+  const IP_VESPA = 'http://192.168.4.1:3000'; // IP local em modo AP da Vespa
 
   const enviarComando = async (comando: 'ligar' | 'desligar') => {
     setCarregando(true);

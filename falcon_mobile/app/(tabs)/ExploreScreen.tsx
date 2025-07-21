@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { getServerIP } from '../../utils/getServerIP';
 
-const IP_NODEMCU = getServerIP();
+const FALCON_WIFI = getServerIP();
 
 const fetchWithTimeout = (url: string, options: RequestInit = {}, timeout = 3000) => {
   return Promise.race([
@@ -114,7 +114,7 @@ export default function ExploreScreen() {
     };
 
     try {
-      const resposta = await fetchWithTimeout(`${IP_NODEMCU}/`, {
+      const resposta = await fetchWithTimeout(`${FALCON_WIFI}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +148,7 @@ export default function ExploreScreen() {
 
   const buscarDadoSerial = async () => {
     try {
-      const resposta = await fetchWithTimeout(`${IP_NODEMCU}/api/distancia`, {}, 3000);
+      const resposta = await fetchWithTimeout(`${FALCON_WIFI}/api/distancia`, {}, 3000);
 
       if (!resposta.ok) {
         throw new Error(`Erro HTTP ${resposta.status} (${resposta.statusText})`);
@@ -188,7 +188,7 @@ export default function ExploreScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.ipText}>Conectando a: {IP_NODEMCU}</Text>
+      <Text style={styles.ipText}>Conectando a: {FALCON_WIFI}</Text>
       <Text style={styles.serialText}>Dado da Vespa: {dadoSerial}</Text>
 
       <View style={styles.section}>

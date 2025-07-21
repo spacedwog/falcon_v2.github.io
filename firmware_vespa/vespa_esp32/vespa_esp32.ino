@@ -5,7 +5,7 @@
 // ========================
 // CONFIGURAÇÃO DO WIFI AP
 // ========================
-const char* ssid_ap = "Falcon WiFi";
+const char* ssid_ap = "Falcon_WiFi";
 const char* password_ap = "12345678";  // mínimo 8 caracteres
 WiFiServer server(3000);
 

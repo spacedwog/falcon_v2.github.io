@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 
-const ESP32_IP = "http://192.168.15.166:3000"; // atualize com o IP real do ESP32
+const ESP32_IP = "http://192.168.4.1:3000"; // atualize com o IP real do ESP32
 
 const comandosPorCategoria = {
   frontend: [
