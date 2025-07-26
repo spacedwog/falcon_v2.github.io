@@ -58,13 +58,26 @@ type ListItem =
 const TecnologiasScreen = () => {
   const [resposta, setResposta] = useState('');
   const [historico, setHistorico] = useState<string[]>([]);
+  const [conectado, setConectado] = useState(false);
 
   useEffect(() => {
     const loadHistorico = async () => {
       const data = await AsyncStorage.getItem('historicoComandos');
       if (data) setHistorico(JSON.parse(data));
     };
+
+    const testarConexao = async () => {
+      try {
+        const res = await fetch(`${ESP32_IP}/ping`);
+        if (res.ok) setConectado(true);
+        else setConectado(false);
+      } catch {
+        setConectado(false);
+      }
+    };
+
     loadHistorico();
+    testarConexao();
   }, []);
 
   const salvarHistorico = async (comando: string) => {
@@ -112,7 +125,6 @@ const TecnologiasScreen = () => {
     await Sharing.shareAsync(path);
   };
 
-  // Construir dados da lista: categorias + resposta + histórico
   const data: ListItem[] = [
     ...Object.entries(comandosPorCategoria).map(([titulo, comandos]) => ({
       type: "categoria" as const,
@@ -153,9 +165,7 @@ const TecnologiasScreen = () => {
             {resposta || 'Nenhum comando enviado ainda.'}
           </Text>
 
-          <View
-            style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 }}
-          >
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 }}>
             <TouchableOpacity onPress={() => exportarArquivo('json')} style={styles.botaoExportar}>
               <Text style={styles.botaoTexto}>Exportar JSON</Text>
             </TouchableOpacity>
@@ -175,7 +185,7 @@ const TecnologiasScreen = () => {
             data={historico}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => <Text style={styles.historicoItem}>• {item}</Text>}
-            scrollEnabled={false} // IMPORTANTE: desabilitar scroll interno para evitar conflito
+            scrollEnabled={false}
           />
         </View>
       );
@@ -189,6 +199,13 @@ const TecnologiasScreen = () => {
       data={data}
       keyExtractor={(item, index) => item.type + index}
       renderItem={renderItem}
+      ListHeaderComponent={
+        <View style={styles.statusContainer}>
+          <Text style={[styles.statusTexto, { color: conectado ? 'lime' : 'red' }]}>
+            {conectado ? '✅ Conectado ao ESP32' : '❌ Sem conexão com ESP32'}
+          </Text>
+        </View>
+      }
       contentContainerStyle={styles.container}
     />
   );
@@ -254,5 +271,13 @@ const styles = StyleSheet.create({
   historicoItem: {
     color: '#ccc',
     paddingVertical: 4,
+  },
+  statusContainer: {
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  statusTexto: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
