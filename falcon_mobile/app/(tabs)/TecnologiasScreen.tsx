@@ -11,6 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { getServerIP } from '../../utils/getServerIP';
 
 type Comando = {
   titulo: string;
@@ -19,7 +20,7 @@ type Comando = {
   valor?: number;
 };
 
-const ESP32_IP = 'http://192.168.4.1:3000';
+const ESP32_IP = getServerIP();
 
 const comandosPorCategoria: Record<string, Comando[]> = {
   frontend: [
